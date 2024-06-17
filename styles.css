@@ -1,4 +1,3 @@
-
 body {
     display: flex;
     margin: 0;
@@ -48,8 +47,17 @@ body {
 
 .bird {
     font-size: 30px; /* Relative size for birds */
+    content: '🐦'; /* Default placeholder */
 }
 
 .worm {
     font-size: 10px; /* Smaller size for worms */
+}
+
+/* Override bird emoji based on platform */
+@supports (-webkit-appearance: none) and (stroke-color:transparent) {
+    /* iOS and macOS */
+    .bird {
+        content: '🦅'; /* Use crow emoji for Apple */
+    }
 }
