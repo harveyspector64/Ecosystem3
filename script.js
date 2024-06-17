@@ -1,5 +1,3 @@
-// script.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
@@ -87,8 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Apply specific classes for styling
         if (emoji === EMOJIS.TREE) {
             emojiElement.classList.add('emoji', 'tree');
-            console.log('Tree placed at:', x, y);
-            addBird(x, y); // Call the function from bird.js
+            addBird(x, y); // Call addBird for tree placement
         } else if (emoji === EMOJIS.BUTTERFLY) {
             emojiElement.classList.add('emoji', 'butterfly');
         } else if (emoji === EMOJIS.BIRD) {
@@ -107,8 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (emoji === EMOJIS.BUSH) {
             addButterflies(x, y);
             unlockTree();
-        } else if (emoji === EMOJIS.TREE) {
-            addBird(x, y);
         }
     }
 
@@ -191,6 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getRandomTime(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
     function getRandomEdgePosition(axis) {
         const playArea = document.getElementById('play-area');
         if (axis === 'x') {
@@ -198,9 +197,5 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
-    }
-
-    function getRandomTime(min, max) {
-        return Math.random() * (max - min) + min;
     }
 });
