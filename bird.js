@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
 
         bird.state = 'flying';
-        const flightTime = (Math.random() * 10000 + 5000) + (isHunting ? 10000 : 0); // 5-15 seconds + extra 10s if hunting
+        const flightTime = (Math.random() * 15000 + 10000) + (isHunting ? 10000 : 0); // 10-25 seconds + extra 10s if hunting
         let lastDebugTime = Date.now(); // Timestamp for throttling debug messages
 
         const flightInterval = setInterval(() => {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
                 bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-                bird.hunger -= 1.5; // Decrease hunger faster
+                bird.hunger -= 0.5; // Decrease hunger slower
 
                 // Check for butterfly collisions
                 const butterflies = document.querySelectorAll('.butterfly');
@@ -102,43 +102,49 @@ document.addEventListener('DOMContentLoaded', () => {
     function birdLandOnGround(bird) {
         console.log('Bird landing on the ground.');
 
-        bird.state = 'walking';
-        bird.walkCount = 0; // Reset walk count
-        birdWalkingPattern(bird);
+        bird.state = 'landing';
+        setTimeout(() => {
+            bird.state = 'walking';
+            bird.walkCount = 0; // Reset walk count
+            birdWalkingPattern(bird);
+        }, 500); // Short delay to simulate smooth landing
     }
 
     function birdLandOnTree(bird, targetX, targetY) {
         console.log('Bird landing on a tree.');
 
-        const trees = document.querySelectorAll('.tree');
-        let nearestTree = null;
-        let minDistance = Infinity;
+        bird.state = 'landing';
+        setTimeout(() => {
+            const trees = document.querySelectorAll('.tree');
+            let nearestTree = null;
+            let minDistance = Infinity;
 
-        trees.forEach(tree => {
-            const treeX = parseFloat(tree.style.left);
-            const treeY = parseFloat(tree.style.top);
-            const distance = Math.sqrt((treeX - targetX) ** 2 + (treeY - targetY) ** 2);
+            trees.forEach(tree => {
+                const treeX = parseFloat(tree.style.left);
+                const treeY = parseFloat(tree.style.top);
+                const distance = Math.sqrt((treeX - targetX) ** 2 + (treeY - targetY) ** 2);
 
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestTree = tree;
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestTree = tree;
+                }
+            });
+
+            if (nearestTree) {
+                const treeX = parseFloat(nearestTree.style.left);
+                const treeY = parseFloat(nearestTree.style.top);
+                bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
+                bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
+
+                console.log('Bird landed on tree at', bird.style.left, bird.style.top);
+
+                const roostTime = Math.random() * 5000 + 5000; // 5-10 seconds
+                setTimeout(() => {
+                    console.log('Bird has roosted. Resuming flight.');
+                    birdFlightPattern(bird, treeX, treeY, false);
+                }, roostTime);
             }
-        });
-
-        if (nearestTree) {
-            const treeX = parseFloat(nearestTree.style.left);
-            const treeY = parseFloat(nearestTree.style.top);
-            bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
-            bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
-
-            console.log('Bird landed on tree at', bird.style.left, bird.style.top);
-
-            const roostTime = Math.random() * 5000 + 5000; // 5-10 seconds
-            setTimeout(() => {
-                console.log('Bird has roosted. Resuming flight.');
-                birdFlightPattern(bird, treeX, treeY, false);
-            }, roostTime);
-        }
+        }, 500); // Short delay to simulate smooth landing
     }
 
     function birdWalkingPattern(bird) {
