@@ -207,14 +207,4 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
     }
-
-    // Ensure addBird is called for each tree
-    document.getElementById('play-area').addEventListener('dragend', (e) => {
-        const draggedEmoji = e.dataTransfer.getData('text');
-        if (draggedEmoji === EMOJIS.TREE) {
-            const x = e.clientX - playArea.offsetLeft;
-            const y = e.clientY - playArea.offsetTop;
-            addBird(x, y);
-        }
-    });
 });
