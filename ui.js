@@ -30,7 +30,7 @@ function addEmojiToPlayArea(emojiType, x, y) {
     const playArea = document.getElementById('play-area');
     const emojiElement = document.createElement('div');
     emojiElement.textContent = EMOJIS[emojiType];
-    emojiElement.classList.add('emoji');
+    emojiElement.classList.add('emoji', emojiType); // Add type-specific class
     emojiElement.style.position = 'absolute';
     emojiElement.style.left = `${x}px`;
     emojiElement.style.top = `${y}px`;
