@@ -2,7 +2,7 @@ const EMOJIS = {
     BUSH: '🌺',
     TREE: '🌳',
     BUTTERFLY: '🦋',
-    BIRD: '🐦', // Placeholder for bird emoji
+    BIRD: '🐦', // Generic placeholder for bird emoji
     WORM: '🐛'
 };
 
