@@ -1,43 +1,66 @@
 function addButterflies(x, y) {
-    setInterval(() => {
-        const butterfly = document.createElement('div');
-        butterfly.textContent = EMOJIS.butterfly;
-        butterfly.classList.add('emoji', 'butterfly');
-        butterfly.style.position = 'absolute';
-        butterfly.style.left = `${x}px`;
-        butterfly.style.top = `${y}px`;
-        butterfly.style.opacity = 0.8; // Slight transparency
-        butterfly.style.fontSize = '1.5em'; // Smaller size
-        document.getElementById('play-area').appendChild(butterfly);
-
-        moveButterfly(butterfly);
-        butterflyFeeding(butterfly);
-    }, 5000);
+    const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
+    for (let i = 0; i < numButterflies; i++) {
+        setTimeout(() => createButterfly(x, y), getRandomTime(10, 20) * 1000);
+    }
 }
 
-function moveButterfly(butterfly) {
-    setInterval(() => {
-        const playArea = document.getElementById('play-area');
-        const targetX = Math.random() * playArea.clientWidth;
-        const targetY = Math.random() * playArea.clientHeight;
+function createButterfly(targetX, targetY) {
+    const playArea = document.getElementById('play-area');
+    const butterflyElement = document.createElement('div');
+    butterflyElement.textContent = '🦋';
+    butterflyElement.classList.add('emoji', 'butterfly');
+    butterflyElement.style.position = 'absolute';
+    butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
+    butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
+    playArea.appendChild(butterflyElement);
 
-        butterfly.style.left = `${targetX}px`;
-        butterfly.style.top = `${targetY}px`;
-    }, 2000);
+    butterflyElement.hunger = 100; // Initialize hunger bar
+    moveButterfly(butterflyElement, targetX, targetY);
 }
 
-function butterflyFeeding(butterfly) {
-    setInterval(() => {
-        const bushes = document.querySelectorAll('.floweringBush');
-        if (bushes.length > 0) {
-            const bush = bushes[Math.floor(Math.random() * bushes.length)];
-            butterfly.style.left = bush.style.left;
-            butterfly.style.top = bush.style.top;
+function moveButterfly(butterfly, targetX, targetY) {
+    const interval = setInterval(() => {
+        const currentX = parseFloat(butterfly.style.left);
+        const currentY = parseFloat(butterfly.style.top);
 
-            // Simulate feeding
-            setTimeout(() => {
-                moveButterfly(butterfly);
-            }, 2000); // Feed for 2 seconds
+        const angle = Math.random() * Math.PI * 2; // Random angle
+        const distance = Math.random() * 20 + 30; // Smaller distance for smoother movement
+
+        const newX = currentX + distance * Math.cos(angle);
+        const newY = currentY + distance * Math.sin(angle);
+
+        butterfly.style.left = `${newX}px`;
+        butterfly.style.top = `${newY}px`;
+
+        butterfly.hunger -= 1; // Decrease hunger over time
+
+        if (butterfly.hunger <= 0) {
+            clearInterval(interval);
+            butterflyLand(butterfly, targetX, targetY);
         }
-    }, 10000); // Attempt to feed every 10 seconds
+    }, 300); // Slower interval for smoother, less jerky movement
+}
+
+function butterflyLand(butterfly, targetX, targetY) {
+    butterfly.style.left = `${targetX}px`;
+    butterfly.style.top = `${targetY}px`;
+    butterfly.hunger = 100; // Reset hunger
+
+    setTimeout(() => {
+        moveButterfly(butterfly, targetX, targetY);
+    }, getRandomTime(5, 10) * 1000);
+}
+
+function getRandomTime(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function getRandomEdgePosition(axis) {
+    const playArea = document.getElementById('play-area');
+    if (axis === 'x') {
+        return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20; // Adjust 20 for margin
+    } else {
+        return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
+    }
 }
