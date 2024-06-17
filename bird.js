@@ -1,3 +1,5 @@
+// bird.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
 
