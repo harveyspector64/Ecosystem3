@@ -1,73 +1,50 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const sidebar = document.getElementById('sidebar');
+    const emojiPanel = document.getElementById('emoji-panel');
     const playArea = document.getElementById('play-area');
 
     INITIAL_EMOJIS.forEach(emojiType => {
-        const emoji = document.createElement('div');
-        emoji.className = 'emoji';
-        emoji.textContent = EMOJIS[emojiType];
-        emoji.draggable = true;
-
-        emoji.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', emojiType);
-        });
-
-        emoji.addEventListener('touchstart', (e) => {
-            e.dataTransfer = { setData: () => {} }; // Mock setData for touch
-            e.dataTransfer.setData('text/plain', emojiType);
-        });
-
-        sidebar.appendChild(emoji);
+        const emojiButton = document.createElement('button');
+        emojiButton.textContent = EMOJIS[emojiType];
+        emojiButton.classList.add('emoji');
+        emojiButton.dataset.type = emojiType;
+        emojiButton.draggable = true;
+        emojiPanel.appendChild(emojiButton);
     });
 
-    playArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
+    emojiPanel.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', event.target.dataset.type);
     });
 
-    playArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const emojiType = e.dataTransfer.getData('text/plain');
-        const x = e.clientX;
-        const y = e.clientY;
-        addEmojiToPlayArea(emojiType, x, y);
+    playArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
     });
 
-    playArea.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const x = touch.clientX;
-        const y = touch.clientY;
-        const emojiType = e.target.textContent;
-        addEmojiToPlayArea(emojiType, x, y);
+    playArea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const emojiType = event.dataTransfer.getData('text/plain');
+        addEmojiToPlayArea(emojiType, event.clientX, event.clientY);
     });
 });
 
 function addEmojiToPlayArea(emojiType, x, y) {
     const playArea = document.getElementById('play-area');
-    const emoji = document.createElement('div');
-    emoji.className = emojiType;
-    emoji.textContent = EMOJIS[emojiType];
-    emoji.style.left = `${x}px`;
-    emoji.style.top = `${y}px`;
-    playArea.appendChild(emoji);
-    handleEmojiPlacement(emojiType, x, y);
+    const emojiElement = document.createElement('div');
+    emojiElement.textContent = EMOJIS[emojiType];
+    emojiElement.classList.add('emoji');
+    emojiElement.style.position = 'absolute';
+    emojiElement.style.left = `${x}px`;
+    emojiElement.style.top = `${y}px`;
+    playArea.appendChild(emojiElement);
+
+    handleGameLogic(emojiType, x, y); // Call to central game logic script
 }
 
-function unlockEmoji(emojiType) {
-    const sidebar = document.getElementById('sidebar');
-    const emoji = document.createElement('div');
-    emoji.className = 'emoji';
-    emoji.textContent = EMOJIS[emojiType];
-    emoji.draggable = true;
-
-    emoji.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', emojiType);
-    });
-
-    emoji.addEventListener('touchstart', (e) => {
-        e.dataTransfer = { setData: () => {} }; // Mock setData for touch
-        e.dataTransfer.setData('text/plain', emojiType);
-    });
-
-    sidebar.appendChild(emoji);
+function updateEmojiPanel(newEmojiType) {
+    const emojiPanel = document.getElementById('emoji-panel');
+    const newEmojiButton = document.createElement('button');
+    newEmojiButton.textContent = EMOJIS[newEmojiType];
+    newEmojiButton.classList.add('emoji');
+    newEmojiButton.dataset.type = newEmojiType;
+    newEmojiButton.draggable = true;
+    emojiPanel.appendChild(newEmojiButton);
 }
