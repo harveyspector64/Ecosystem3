@@ -2,8 +2,8 @@ const EMOJIS = {
     BUSH: '🌺',
     TREE: '🌳',
     BUTTERFLY: '🦋',
-    BIRD: '🐦',
-    WORM: '🐛' // Caterpillar emoji for worm
+    BIRD: '🦉',  // Use appropriate emoji or image for the bird
+    WORM: '🐛'
 };
 
 const INITIAL_EMOJIS = [
