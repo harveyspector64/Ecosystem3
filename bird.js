@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const flightInterval = setInterval(() => {
             if (bird.state === 'flying') {
                 // Throttle debug messages for flying state
-                if (Date.now() - lastDebugTime > 1000) { // Log once per second
+                if (Date.now() - lastDebugTime > 3000) { // Log every 3 seconds
                     console.log('Bird is flying at:', bird.style.left, bird.style.top);
                     lastDebugTime = Date.now();
                 }
@@ -58,10 +58,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 bird.hunger -= 1; // Decrease hunger over time
 
-                if (Date.now() - lastDebugTime > 1000) { // Log once per second
-                    console.log('Bird moved to', bird.style.left, bird.style.top, 'with hunger', bird.hunger);
-                    lastDebugTime = Date.now();
-                }
+                // Check for butterfly collisions
+                const butterflies = document.querySelectorAll('.butterfly');
+                butterflies.forEach(butterfly => {
+                    const butterflyRect = butterfly.getBoundingClientRect();
+                    const birdRect = bird.getBoundingClientRect();
+                    if (birdRect.left < butterflyRect.right &&
+                        birdRect.right > butterflyRect.left &&
+                        birdRect.top < butterflyRect.bottom &&
+                        birdRect.bottom > butterflyRect.top) {
+                        // Butterfly eaten
+                        butterfly.remove();
+                        bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
+                        console.log('Bird ate a butterfly. Hunger:', bird.hunger);
+                    }
+                });
 
                 if (bird.hunger <= 60) {
                     clearInterval(flightInterval);
@@ -131,8 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const roostTime = Math.random() * 3000 + 3000; // 3-6 seconds
             setTimeout(() => {
-                bird.hunger = 100; // Reset hunger after roosting
-                console.log('Bird has roosted and reset hunger. Resuming flight.');
+                console.log('Bird has roosted. Resuming flight.');
                 birdFlightPattern(bird, targetX, targetY);
             }, roostTime);
         }
@@ -155,7 +165,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 bird.style.left = `${newX}px`;
                 bird.style.top = `${newY}px`;
 
+                // Invert the emoji to simulate looking both ways
+                bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
+
                 console.log('Bird walked to', bird.style.left, bird.style.top);
+
+                // Check for nearby worms
+                const worms = document.querySelectorAll('.worm');
+                worms.forEach(worm => {
+                    const wormRect = worm.getBoundingClientRect();
+                    const birdRect = bird.getBoundingClientRect();
+                    const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
+                    if (distance < 50) { // If within 50 pixels
+                        clearInterval(walkInterval);
+                        bird.style.left = `${wormRect.left}px`;
+                        bird.style.top = `${wormRect.top}px`;
+                        worm.remove();
+                        bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
+                        console.log('Bird ate a worm. Hunger:', bird.hunger);
+                        birdFlightPattern(bird, newX, newY);
+                    }
+                });
 
                 const walkTime = Math.random() * 1000 + 500; // 0.5-1.5 seconds
                 setTimeout(() => {
