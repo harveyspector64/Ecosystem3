@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (draggedEmoji) {
             const x = e.clientX - playArea.offsetLeft;
             const y = e.clientY - playArea.offsetTop;
-            addEmojiToPlayArea(draggedEmoji, x, y);
+            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
         }
     });
@@ -48,12 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const touch = e.changedTouches[0];
             const x = touch.clientX - playArea.offsetLeft;
             const y = touch.clientY - playArea.offsetTop;
-            addEmojiToPlayArea(draggedEmoji, x, y);
+            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
         }
     });
 
-    function addEmojiToPlayArea(emoji, x, y) {
+    function addEmojiToPlayArea(emoji, x, y, playArea) {
         const emojiElement = document.createElement('div');
         emojiElement.textContent = emoji;
 
@@ -77,10 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Additional logic for specific emojis
         if (emoji === EMOJIS.BUSH) {
-            addButterflies(x, y);
+            addButterflies(x, y, playArea);
             unlockTree();
         } else if (emoji === EMOJIS.TREE) {
-            addBird(x, y);
+            addBird(x, y, playArea);
         }
     }
 
@@ -90,28 +90,27 @@ document.addEventListener('DOMContentLoaded', () => {
         tree.setAttribute('draggable', 'true');
     }
 
-    function addButterflies(x, y) {
+    function addButterflies(x, y, playArea) {
         const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
         for (let i = 0; i < numButterflies; i++) {
-            setTimeout(() => createButterfly(x, y), getRandomTime(10, 20) * 1000);
+            setTimeout(() => createButterfly(x, y, playArea), getRandomTime(10, 20) * 1000);
         }
     }
 
-    function createButterfly(targetX, targetY) {
-        const playArea = document.getElementById('play-area');
+    function createButterfly(targetX, targetY, playArea) {
         const butterflyElement = document.createElement('div');
         butterflyElement.textContent = EMOJIS.BUTTERFLY;
         butterflyElement.classList.add('emoji', 'butterfly');
         butterflyElement.style.position = 'absolute';
-        butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
-        butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
+        butterflyElement.style.left = getRandomEdgePosition('x', playArea) + 'px';
+        butterflyElement.style.top = getRandomEdgePosition('y', playArea) + 'px';
         playArea.appendChild(butterflyElement);
 
         butterflyElement.hunger = 100; // Initialize hunger bar
-        moveButterfly(butterflyElement, targetX, targetY);
+        moveButterfly(butterflyElement, targetX, targetY, playArea);
     }
 
-    function moveButterfly(butterfly, targetX, targetY) {
+    function moveButterfly(butterfly, targetX, targetY, playArea) {
         const interval = setInterval(() => {
             const currentX = parseFloat(butterfly.style.left);
             const currentY = parseFloat(butterfly.style.top);
@@ -129,12 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (butterfly.hunger <= 0) {
                 clearInterval(interval);
-                butterflyLand(butterfly, targetX, targetY);
+                butterflyLand(butterfly, targetX, targetY, playArea);
             }
         }, 300); // Slower interval for smoother, less jerky movement
     }
 
-    function butterflyLand(butterfly, targetX, targetY) {
+    function butterflyLand(butterfly, targetX, targetY, playArea) {
         const bushes = document.querySelectorAll('.emoji');
         let nearestBush = null;
         let minDistance = Infinity;
@@ -158,42 +157,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setTimeout(() => {
                 butterfly.hunger = 100; // Reset hunger
-                moveButterfly(butterfly, parseFloat(nearestBush.style.left), parseFloat(nearestBush.style.top));
+                moveButterfly(butterfly, parseFloat(nearestBush.style.left), parseFloat(nearestBush.style.top), playArea);
             }, getRandomTime(5, 10) * 1000);
         }
     }
 
-    // Bird-related logic (as previously discussed)
-    // Ensure addBird is defined in the correct scope
-    // Example bird function:
-
-    window.addBird = function(x, y) {
-        console.log('Tree placed at:', x, y);
-
-        const spawnTime = Math.random() * 8000 + 4000; // 4-12 seconds
-        setTimeout(() => {
-            console.log('Spawning bird after delay:', spawnTime);
-
-            const birdElement = document.createElement('div');
-            birdElement.textContent = EMOJIS.BIRD; // Placeholder emoji
-            birdElement.classList.add('emoji', 'bird');
-            birdElement.style.position = 'absolute';
-            birdElement.style.left = getRandomEdgePosition('x') + 'px';
-            birdElement.style.top = getRandomEdgePosition('y') + 'px';
-            playArea.appendChild(birdElement);
-
-            birdElement.hunger = 100; // Initialize hunger bar
-            birdElement.state = 'flying'; // Initial state
-            birdElement.walkCount = 0; // Initialize walk count
-
-            console.log('Bird spawned with hunger:', birdElement.hunger, 'at position', birdElement.style.left, birdElement.style.top);
-
-            birdFlightPattern(birdElement, x, y, false);
-        }, spawnTime);
-    };
-
-    function getRandomEdgePosition(axis) {
-        const playArea = document.getElementById('play-area');
+    function getRandomEdgePosition(axis, playArea) {
         if (axis === 'x') {
             return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20; // Adjust 20 for margin
         } else {
@@ -203,19 +172,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getRandomTime(min, max) {
         return Math.random() * (max - min) + min;
-    }
-
-    function addWormToPanel() {
-        const wormElement = document.createElement('div');
-        wormElement.id = 'worm';
-        wormElement.classList.add('emoji');
-        wormElement.textContent = EMOJIS.WORM;
-        wormElement.setAttribute('draggable', 'true');
-        wormElement.addEventListener('dragstart', (e) => {
-            draggedEmoji = EMOJIS.WORM;
-        });
-
-        sidebar.appendChild(wormElement);
-        console.log('Worm emoji added to the panel.');
     }
 });
