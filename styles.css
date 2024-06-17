@@ -1,4 +1,3 @@
-
 body {
     display: flex;
     margin: 0;
@@ -48,8 +47,24 @@ body {
 
 .bird {
     font-size: 30px; /* Relative size for birds */
+    content: url(''); /* Placeholder, to be overridden */
 }
 
 .worm {
     font-size: 10px; /* Smaller size for worms */
+}
+
+/* Override bird emoji based on platform */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    /* Safari and Chrome */
+    .bird {
+        content: '🐦'; /* Use red robin for web/desktop */
+    }
+}
+
+@media screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-device-pixel-ratio: 3) {
+    /* Specific for Apple devices */
+    .bird {
+        content: '🦅'; /* Use crow emoji for Apple */
+    }
 }
