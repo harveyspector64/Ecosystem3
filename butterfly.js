@@ -1,3 +1,4 @@
+
 function addButterflies(x, y) {
     const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
     for (let i = 0; i < numButterflies; i++) {
