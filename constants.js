@@ -1,21 +1,15 @@
+
+// constants.js
+
 const EMOJIS = {
-    butterfly: '🦋',
-    tree: '🌳',
-    bird: '🐦',
-    worm: '🐛',
-    floweringBush: '🌸', // Example new emoji
-    rock: '🪨' // Example new emoji
+    BUSH: '🌺',
+    TREE: '🌳',
+    BUTTERFLY: '🦋',
+    BIRD: '🐦',
+    WORM: '🐛'
 };
 
-const INITIAL_EMOJIS = ['butterfly', 'tree'];
-
-const UNLOCK_THRESHOLDS = {
-    bird: 1, // Unlocks after placing 1 tree
-    worm: 1, // Unlocks after placing 1 bird
-    // Add more thresholds as needed
-};
-
-const DAY_NIGHT_CYCLE = {
-    dayDuration: 600, // Example duration in seconds
-    nightDuration: 600 // Example duration in seconds
-};
+const INITIAL_EMOJIS = [
+    { id: 'flowering-bush', emoji: EMOJIS.BUSH },
+    { id: 'tree', emoji: EMOJIS.TREE, disabled: true }
+];
