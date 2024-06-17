@@ -2,7 +2,7 @@ const EMOJIS = {
     butterfly: '🦋',
     tree: '🌳',
     bird: '🐦',
-    caterpillar: '🐛' // Changed from worm to caterpillar emoji
+    worm: '🐛'
 };
 
 const INITIAL_EMOJIS = ['butterfly', 'tree'];
