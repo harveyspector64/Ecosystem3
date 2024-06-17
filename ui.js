@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
             e.dataTransfer.setData('text/plain', emojiType);
         });
 
+        emoji.addEventListener('touchstart', (e) => {
+            e.dataTransfer = { setData: () => {} }; // Mock setData for touch
+            e.dataTransfer.setData('text/plain', emojiType);
+        });
+
         sidebar.appendChild(emoji);
     });
 
@@ -24,6 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const emojiType = e.dataTransfer.getData('text/plain');
         const x = e.clientX;
         const y = e.clientY;
+        addEmojiToPlayArea(emojiType, x, y);
+    });
+
+    playArea.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const x = touch.clientX;
+        const y = touch.clientY;
+        const emojiType = e.target.textContent;
         addEmojiToPlayArea(emojiType, x, y);
     });
 });
@@ -47,6 +61,11 @@ function unlockEmoji(emojiType) {
     emoji.draggable = true;
 
     emoji.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', emojiType);
+    });
+
+    emoji.addEventListener('touchstart', (e) => {
+        e.dataTransfer = { setData: () => {} }; // Mock setData for touch
         e.dataTransfer.setData('text/plain', emojiType);
     });
 
