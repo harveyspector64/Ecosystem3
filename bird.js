@@ -43,10 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentX = parseFloat(bird.style.left);
                 const currentY = parseFloat(bird.style.top);
 
-                const angle = Math.random() * Math.PI * 2;
-                const distance = (Math.random() * 50 + 30) * (isHunting ? 2 : 1); // Wider circles if hunting
-                const newX = currentX + distance * Math.cos(angle);
-                const newY = currentY + distance * Math.sin(angle);
+                // Soaring circular pattern
+                const angle = (Date.now() / 1000) % (2 * Math.PI); // Create a circular motion
+                const radius = 50; // Radius of the circular path
+                const newX = currentX + radius * Math.cos(angle);
+                const newY = currentY + radius * Math.sin(angle);
 
                 bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
                 bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
@@ -69,10 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                if (bird.hunger <= 60) {
+                if (bird.hunger <= 60 && !isHunting) {
                     clearInterval(flightInterval);
-                    console.log('Bird hunger below 60, preparing to land.');
-                    birdLandingDecision(bird, targetX, targetY, true);
+                    console.log('Bird hunger below 60, but continuing to fly.');
+                    birdFlightPattern(bird, targetX, targetY, true);
                 }
             }
         }, 500);
@@ -82,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (bird.state === 'flying') {
                 clearInterval(flightInterval);
                 console.log('Bird completing flight time, preparing to land.');
-                birdLandingDecision(bird, targetX, targetY, false);
+                birdLandingDecision(bird, targetX, targetY, isHunting);
             }
         }, flightTime);
     }
