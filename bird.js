@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Spawning bird after delay:', spawnTime);
 
             const birdElement = document.createElement('div');
-            birdElement.textContent = EMOJIS.BIRD; // Placeholder emoji
+            birdElement.textContent = EMOJIS.BIRD; // Using the bird emoji from constants
             birdElement.classList.add('emoji', 'bird');
             birdElement.style.position = 'absolute';
             birdElement.style.left = getRandomEdgePosition('x') + 'px';
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bird.hunger <= 60) {
                     clearInterval(flightInterval);
                     console.log('Bird hunger below 60, preparing to land.');
-                    birdLandingDecision(bird, targetX, targetY);
+                    birdLandingDecision(bird, targetX, targetY, true);
                 }
             }
         }, 500);
@@ -82,15 +82,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (bird.state === 'flying') {
                 clearInterval(flightInterval);
                 console.log('Bird completing flight time, preparing to land.');
-                birdLandingDecision(bird, targetX, targetY);
+                birdLandingDecision(bird, targetX, targetY, false);
             }
         }, flightTime);
     }
 
-    function birdLandingDecision(bird, targetX, targetY) {
+    function birdLandingDecision(bird, targetX, targetY, isHunting) {
         console.log('Bird deciding where to land. Hunger:', bird.hunger);
 
-        if (bird.hunger <= 60) {
+        if (bird.hunger <= 60 && isHunting) {
             console.log('Bird hunger below 60, landing on the ground.');
             birdLandOnGround(bird);
         } else {
