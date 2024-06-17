@@ -47,7 +47,7 @@ body {
 
 .bird {
     font-size: 30px; /* Relative size for birds */
-    content: url(''); /* Placeholder, to be overridden */
+    content: '🐦'; /* Default placeholder */
 }
 
 .worm {
