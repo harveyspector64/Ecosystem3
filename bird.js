@@ -22,15 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Bird spawned with hunger:', birdElement.hunger, 'at position', birdElement.style.left, birdElement.style.top);
 
-            birdFlightPattern(birdElement, x, y);
+            birdFlightPattern(birdElement, x, y, false);
         }, spawnTime);
     };
 
-    function birdFlightPattern(bird, targetX, targetY) {
+    function birdFlightPattern(bird, targetX, targetY, isHunting) {
         console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
 
         bird.state = 'flying';
-        const flightTime = Math.random() * 10000 + 5000; // 5-15 seconds
+        const flightTime = (Math.random() * 10000 + 5000) + (isHunting ? 10000 : 0); // 5-15 seconds + extra 10s if hunting
         let lastDebugTime = Date.now(); // Timestamp for throttling debug messages
 
         const flightInterval = setInterval(() => {
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentY = parseFloat(bird.style.top);
 
                 const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 50 + 30;
+                const distance = (Math.random() * 50 + 30) * (isHunting ? 2 : 1); // Wider circles if hunting
                 const newX = currentX + distance * Math.cos(angle);
                 const newY = currentY + distance * Math.sin(angle);
 
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const roostTime = Math.random() * 3000 + 3000; // 3-6 seconds
             setTimeout(() => {
                 console.log('Bird has roosted. Resuming flight.');
-                birdFlightPattern(bird, targetX, targetY);
+                birdFlightPattern(bird, targetX, targetY, false);
             }, roostTime);
         }
     }
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         worm.remove();
                         bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
                         console.log('Bird ate a worm. Hunger:', bird.hunger);
-                        birdFlightPattern(bird, currentX, currentY);
+                        birdFlightPattern(bird, currentX, currentY, true);
                     }
                 });
 
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(walkInterval);
                     bird.state = 'flying';
                     console.log('Bird finished walking. Resuming flight.');
-                    birdFlightPattern(bird, currentX, currentY);
+                    birdFlightPattern(bird, currentX, currentY, true);
                 }
             }
         }, 1000); // Interval for walking pattern, slower speed
