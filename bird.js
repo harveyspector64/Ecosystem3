@@ -35,12 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         bird.state = 'flying';
         const flightTime = Math.random() * 10000 + 5000; // 5-15 seconds
+        let lastDebugTime = Date.now(); // Timestamp for throttling debug messages
 
         const flightInterval = setInterval(() => {
             if (bird.state === 'flying') {
                 // Throttle debug messages for flying state
-                if (Math.random() < 0.1) {
+                if (Date.now() - lastDebugTime > 1000) { // Log once per second
                     console.log('Bird is flying at:', bird.style.left, bird.style.top);
+                    lastDebugTime = Date.now();
                 }
 
                 const currentX = parseFloat(bird.style.left);
@@ -56,8 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 bird.hunger -= 1; // Decrease hunger over time
 
-                if (Math.random() < 0.1) {
+                if (Date.now() - lastDebugTime > 1000) { // Log once per second
                     console.log('Bird moved to', bird.style.left, bird.style.top, 'with hunger', bird.hunger);
+                    lastDebugTime = Date.now();
                 }
 
                 if (bird.hunger <= 60) {
