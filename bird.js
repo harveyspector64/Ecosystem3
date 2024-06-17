@@ -27,14 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function birdFlightPattern(bird, targetX, targetY) {
-        console.log('Bird entering flight state.');
+        console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
 
         bird.state = 'flying';
         const flightTime = Math.random() * 10000 + 5000; // 5-15 seconds
 
         const flightInterval = setInterval(() => {
             if (bird.state === 'flying') {
-                console.log('Bird is flying.');
+                console.log('Bird is flying at:', bird.style.left, bird.style.top);
 
                 const currentX = parseFloat(bird.style.left);
                 const currentY = parseFloat(bird.style.top);
