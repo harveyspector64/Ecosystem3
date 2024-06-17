@@ -1,11 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
-    let birdSpawned = false; // Flag to ensure only one bird spawns per tree
 
-    window.addBird = function(x, y) {
-        if (birdSpawned) return; // Ensure only one bird spawns per tree
-        birdSpawned = true;
-
+    function addBird(x, y) {
         console.log('Tree placed at:', x, y);
 
         // Set a random time for the bird to appear after the tree is placed
@@ -28,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             birdFlightPattern(birdElement, x, y);
         }, spawnTime);
-    };
+    }
 
     function birdFlightPattern(bird, targetX, targetY) {
         console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
@@ -56,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bird.style.left = `${newX}px`;
                 bird.style.top = `${newY}px`;
 
-                bird.hunger -= 1; // Decrease hunger over time
+                bird.hunger -= 2; // Decrease hunger faster
 
                 // Check for butterfly collisions
                 const butterflies = document.querySelectorAll('.butterfly');
@@ -156,14 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentX = parseFloat(bird.style.left);
                 const currentY = parseFloat(bird.style.top);
 
-                const distance = Math.random() * 20 + 10; // Walk distance
+                const distance = Math.random() * 10 + 5; // Walk distance, slower speed
                 const angle = Math.random() * Math.PI * 2; // Random angle
 
                 const newX = currentX + distance * Math.cos(angle);
                 const newY = currentY + distance * Math.sin(angle);
 
-                bird.style.left = `${newX}px`;
-                bird.style.top = `${newY}px`;
+                bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`; // Confining to map
+                bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`; // Confining to map
 
                 // Invert the emoji to simulate looking both ways
                 bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
@@ -183,11 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         worm.remove();
                         bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
                         console.log('Bird ate a worm. Hunger:', bird.hunger);
-                        birdFlightPattern(bird, newX, newY);
+                        birdFlightPattern(bird, currentX, currentY);
                     }
                 });
 
-                const walkTime = Math.random() * 1000 + 500; // 0.5-1.5 seconds
+                const walkTime = Math.random() * 2000 + 1000; // 1-3 seconds, slower walking pattern
                 setTimeout(() => {
                     if (bird.hunger <= 60) {
                         bird.state = 'walking';
@@ -196,11 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         bird.state = 'flying';
                         console.log('Bird hunger above 60, resuming flight.');
-                        birdFlightPattern(bird, newX, newY);
+                        birdFlightPattern(bird, currentX, currentY);
                     }
                 }, walkTime);
             }
-        }, 300); // Interval for walking pattern
+        }, 1000); // Interval for walking pattern, slower speed
     }
 
     function getRandomEdgePosition(axis) {
@@ -211,4 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
     }
+
+    // Ensure addBird is called for each tree
+    document.getElementById('play-area').addEventListener('dragend', (e) => {
+        const draggedEmoji = e.dataTransfer.getData('text');
+        if (draggedEmoji === EMOJIS.TREE) {
+            const x = e.clientX - playArea.offsetLeft;
+            const y = e.clientY - playArea.offsetTop;
+            addBird(x, y);
+        }
+    });
 });
