@@ -1,11 +1,8 @@
-
-// constants.js
-
 const EMOJIS = {
     BUSH: '🌺',
     TREE: '🌳',
     BUTTERFLY: '🦋',
-    BIRD: '🐦',
+    BIRD: '🐦', // Using a more universally liked bird emoji
     WORM: '🐛'
 };
 
