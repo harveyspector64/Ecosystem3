@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Spawning bird after delay:', spawnTime);
 
             const birdElement = document.createElement('div');
-            birdElement.textContent = EMOJIS.BIRD; // Using the bird emoji from constants
+            birdElement.textContent = EMOJIS.BIRD; // Placeholder emoji
             birdElement.classList.add('emoji', 'bird');
             birdElement.style.position = 'absolute';
             birdElement.style.left = getRandomEdgePosition('x') + 'px';
