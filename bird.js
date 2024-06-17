@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Spawning bird after delay:', spawnTime);
 
             const birdElement = document.createElement('div');
-            birdElement.textContent = EMOJIS.BIRD;
+            birdElement.textContent = EMOJIS.BIRD; // Using the bird emoji from constants
             birdElement.classList.add('emoji', 'bird');
             birdElement.style.position = 'absolute';
             birdElement.style.left = getRandomEdgePosition('x') + 'px';
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
                 bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-                bird.hunger -= 0.5; // Decrease hunger slower
+                bird.hunger -= 1.5; // Decrease hunger faster
 
                 // Check for butterfly collisions
                 const butterflies = document.querySelectorAll('.butterfly');
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         birdRect.bottom > butterflyRect.top) {
                         // Butterfly eaten
                         butterfly.remove();
-                        bird.hunger = Math.min(bird.hunger + 10, 100); // Increase hunger by less
+                        bird.hunger = Math.min(bird.hunger + 5, 100); // Increase hunger by even less
                         console.log('Bird ate a butterfly. Hunger:', bird.hunger);
                     }
                 });
