@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             birdElement.hunger = 100; // Initialize hunger bar
             birdElement.state = 'flying'; // Initial state
 
-            console.log('Bird spawned with hunger:', birdElement.hunger);
+            console.log('Bird spawned with hunger:', birdElement.hunger, 'at position', birdElement.style.left, birdElement.style.top);
 
             birdFlightPattern(birdElement, x, y);
         }, spawnTime);
