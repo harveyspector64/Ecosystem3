@@ -48,10 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newX = currentX + distance * Math.cos(angle);
                 const newY = currentY + distance * Math.sin(angle);
 
-                bird.style.left = `${newX}px`;
-                bird.style.top = `${newY}px`;
+                bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
+                bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-                bird.hunger -= 2; // Decrease hunger faster
+                bird.hunger -= 1; // Decrease hunger slower
 
                 // Check for butterfly collisions
                 const butterflies = document.querySelectorAll('.butterfly');
@@ -103,9 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Bird landing on the ground.');
 
         bird.state = 'walking';
-        bird.style.left = `${Math.random() * playArea.clientWidth}px`;
-        bird.style.top = `${Math.random() * playArea.clientHeight}px`;
-
         bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird);
     }
@@ -136,10 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Bird landed on tree at', bird.style.left, bird.style.top);
 
-            const roostTime = Math.random() * 3000 + 3000; // 3-6 seconds
+            const roostTime = Math.random() * 5000 + 5000; // 5-10 seconds
             setTimeout(() => {
                 console.log('Bird has roosted. Resuming flight.');
-                birdFlightPattern(bird, targetX, targetY, false);
+                birdFlightPattern(bird, treeX, treeY, false);
             }, roostTime);
         }
     }
