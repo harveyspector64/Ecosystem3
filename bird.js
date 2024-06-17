@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
 
-    function addBird(x, y) {
+    window.addBird = function(x, y) { // Attach addBird to window
         console.log('Tree placed at:', x, y);
 
         // Set a random time for the bird to appear after the tree is placed
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             birdFlightPattern(birdElement, x, y);
         }, spawnTime);
-    }
+    };
 
     function birdFlightPattern(bird, targetX, targetY) {
         console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
@@ -171,11 +171,4 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
     }
-
-    // Initial setup for adding bird on tree
-    document.getElementById('tree').addEventListener('dragend', (e) => {
-        const x = e.clientX - playArea.offsetLeft;
-        const y = e.clientY - playArea.offsetTop;
-        addBird(x, y);
-    });
 });
