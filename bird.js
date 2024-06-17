@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
                 bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-                bird.hunger -= 1; // Decrease hunger slower
+                bird.hunger -= 0.5; // Decrease hunger slower
 
                 // Check for butterfly collisions
                 const butterflies = document.querySelectorAll('.butterfly');
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         birdRect.bottom > butterflyRect.top) {
                         // Butterfly eaten
                         butterfly.remove();
-                        bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
+                        bird.hunger = Math.min(bird.hunger + 10, 100); // Increase hunger by less
                         console.log('Bird ate a butterfly. Hunger:', bird.hunger);
                     }
                 });
