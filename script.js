@@ -1,199 +1,193 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
+    const sidebar = document.getElementById('sidebar');
+    let draggedEmoji = null;
+    let activeEmoji = null;
 
-    window.addBird = function(x, y) {
-        console.log('Tree placed at:', x, y);
-
-        const spawnTime = Math.random() * 8000 + 4000; // 4-12 seconds
-        setTimeout(() => {
-            console.log('Spawning bird after delay:', spawnTime);
-
-            const birdElement = document.createElement('div');
-            birdElement.textContent = EMOJIS.BIRD;
-            birdElement.classList.add('emoji', 'bird');
-            birdElement.style.position = 'absolute';
-            birdElement.style.left = getRandomEdgePosition('x') + 'px';
-            birdElement.style.top = getRandomEdgePosition('y') + 'px';
-            playArea.appendChild(birdElement);
-
-            birdElement.hunger = 100; // Initialize hunger bar
-            birdElement.state = 'flying'; // Initial state
-            birdElement.walkCount = 0; // Initialize walk count
-
-            console.log('Bird spawned with hunger:', birdElement.hunger, 'at position', birdElement.style.left, birdElement.style.top);
-
-            birdFlightPattern(birdElement, x, y);
-        }, spawnTime);
-    };
-
-    function birdFlightPattern(bird, targetX, targetY) {
-        console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
-
-        bird.state = 'flying';
-        const flightTime = Math.random() * 10000 + 5000; // 5-15 seconds
-        let lastDebugTime = Date.now(); // Timestamp for throttling debug messages
-
-        const flightInterval = setInterval(() => {
-            if (bird.state === 'flying') {
-                if (Date.now() - lastDebugTime > 3000) { // Log every 3 seconds
-                    console.log('Bird is flying at:', bird.style.left, bird.style.top);
-                    lastDebugTime = Date.now();
-                }
-
-                const currentX = parseFloat(bird.style.left);
-                const currentY = parseFloat(bird.style.top);
-
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 50 + 30;
-                const newX = currentX + distance * Math.cos(angle);
-                const newY = currentY + distance * Math.sin(angle);
-
-                bird.style.left = `${newX}px`;
-                bird.style.top = `${newY}px`;
-
-                bird.hunger -= 2; // Decrease hunger faster
-
-                // Check for butterfly collisions
-                const butterflies = document.querySelectorAll('.butterfly');
-                butterflies.forEach(butterfly => {
-                    const butterflyRect = butterfly.getBoundingClientRect();
-                    const birdRect = bird.getBoundingClientRect();
-                    if (birdRect.left < butterflyRect.right &&
-                        birdRect.right > butterflyRect.left &&
-                        birdRect.top < butterflyRect.bottom &&
-                        birdRect.bottom > butterflyRect.top) {
-                        // Butterfly eaten
-                        butterfly.remove();
-                        bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
-                        console.log('Bird ate a butterfly. Hunger:', bird.hunger);
-                    }
-                });
-
-                if (bird.hunger <= 60) {
-                    clearInterval(flightInterval);
-                    console.log('Bird hunger below 60, preparing to land.');
-                    birdLandingDecision(bird, targetX, targetY);
-                }
-            }
-        }, 500);
-
-        // Set timeout for changing state after flight time
-        setTimeout(() => {
-            if (bird.state === 'flying') {
-                clearInterval(flightInterval);
-                console.log('Bird completing flight time, preparing to land.');
-                birdLandingDecision(bird, targetX, targetY);
-            }
-        }, flightTime);
-    }
-
-    function birdLandingDecision(bird, targetX, targetY) {
-        console.log('Bird deciding where to land. Hunger:', bird.hunger);
-
-        if (bird.hunger <= 60) {
-            console.log('Bird hunger below 60, landing on the ground.');
-            birdLandOnGround(bird);
-        } else {
-            console.log('Bird hunger above 60, landing on a tree.');
-            birdLandOnTree(bird, targetX, targetY);
+    INITIAL_EMOJIS.forEach(item => {
+        const element = document.getElementById(item.id);
+        if (item.disabled) {
+            element.classList.add('disabled');
+            element.setAttribute('draggable', 'false');
         }
-    }
 
-    function birdLandOnGround(bird) {
-        console.log('Bird landing on the ground.');
+        // Mouse events
+        element.addEventListener('dragstart', (e) => {
+            draggedEmoji = item.emoji;
+        });
 
-        bird.state = 'walking';
-        bird.style.left = `${Math.random() * playArea.clientWidth}px`;
-        bird.style.top = `${Math.random() * playArea.clientHeight}px`;
+        element.addEventListener('dragend', (e) => {
+            const x = e.clientX - playArea.offsetLeft;
+            const y = e.clientY - playArea.offsetTop;
+            addEmojiToPlayArea(draggedEmoji, x, y);
+            draggedEmoji = null;
+        });
 
-        bird.walkCount = 0; // Reset walk count
-        birdWalkingPattern(bird);
-    }
+        // Touch events
+        element.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            draggedEmoji = item.emoji;
+            activeEmoji = document.createElement('div');
+            activeEmoji.textContent = draggedEmoji;
+            activeEmoji.classList.add('emoji');
+            activeEmoji.style.position = 'absolute';
+            activeEmoji.style.left = `${e.touches[0].clientX}px`;
+            activeEmoji.style.top = `${e.touches[0].clientY}px`;
+            document.body.appendChild(activeEmoji);
+        });
 
-    function birdLandOnTree(bird, targetX, targetY) {
-        console.log('Bird landing on a tree.');
-
-        const trees = document.querySelectorAll('.tree');
-        let nearestTree = null;
-        let minDistance = Infinity;
-
-        trees.forEach(tree => {
-            const treeX = parseFloat(tree.style.left);
-            const treeY = parseFloat(tree.style.top);
-            const distance = Math.sqrt((treeX - targetX) ** 2 + (treeY - targetY) ** 2);
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestTree = tree;
+        element.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (activeEmoji) {
+                activeEmoji.style.left = `${e.touches[0].clientX}px`;
+                activeEmoji.style.top = `${e.touches[0].clientY}px`;
             }
         });
 
-        if (nearestTree) {
-            const treeX = parseFloat(nearestTree.style.left);
-            const treeY = parseFloat(nearestTree.style.top);
-            bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
-            bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
+        element.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (activeEmoji) {
+                activeEmoji.remove();
+                activeEmoji = null;
+                const touch = e.changedTouches[0];
+                const x = touch.clientX - playArea.offsetLeft;
+                const y = touch.clientY - playArea.offsetTop;
+                addEmojiToPlayArea(draggedEmoji, x, y);
+                draggedEmoji = null;
+            }
+        });
+    });
 
-            console.log('Bird landed on tree at', bird.style.left, bird.style.top);
+    // Prevent default touch actions on play area
+    playArea.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+    });
 
-            const roostTime = Math.random() * 3000 + 3000; // 3-6 seconds
-            setTimeout(() => {
-                console.log('Bird has roosted. Resuming flight.');
-                birdFlightPattern(bird, targetX, targetY);
-            }, roostTime);
+    // Mouse events
+    playArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    playArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedEmoji) {
+            const x = e.clientX - playArea.offsetLeft;
+            const y = e.clientY - playArea.offsetTop;
+            addEmojiToPlayArea(draggedEmoji, x, y);
+            draggedEmoji = null;
+        }
+    });
+
+    function addEmojiToPlayArea(emoji, x, y) {
+        const emojiElement = document.createElement('div');
+        emojiElement.textContent = emoji;
+
+        // Apply specific classes for styling
+        if (emoji === EMOJIS.TREE) {
+            emojiElement.classList.add('emoji', 'tree');
+            addBird(x, y); // Call addBird for tree placement
+        } else if (emoji === EMOJIS.BUTTERFLY) {
+            emojiElement.classList.add('emoji', 'butterfly');
+        } else if (emoji === EMOJIS.BIRD) {
+            emojiElement.classList.add('emoji', 'bird');
+        } else if (emoji === EMOJIS.WORM) {
+            emojiElement.classList.add('emoji', 'worm');
+        } else {
+            emojiElement.classList.add('emoji');
+        }
+
+        emojiElement.style.position = 'absolute';
+        emojiElement.style.left = `${x}px`;
+        emojiElement.style.top = `${y}px`;
+        playArea.appendChild(emojiElement);
+
+        if (emoji === EMOJIS.BUSH) {
+            addButterflies(x, y);
+            unlockTree();
         }
     }
 
-    function birdWalkingPattern(bird) {
-        console.log('Bird walking on the ground.');
+    function unlockTree() {
+        const tree = document.getElementById('tree');
+        tree.classList.remove('disabled');
+        tree.setAttribute('draggable', 'true');
+    }
 
-        let walkCount = 0; // Counter for walks
-        const maxWalks = 2 + Math.floor(Math.random() * 2); // 2-3 walks
+    function addButterflies(x, y) {
+        const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
+        for (let i = 0; i < numButterflies; i++) {
+            setTimeout(() => createButterfly(x, y), getRandomTime(10, 20) * 1000);
+        }
+    }
 
-        const walkInterval = setInterval(() => {
-            if (bird.state === 'walking') {
-                walkCount++;
-                const currentX = parseFloat(bird.style.left);
-                const currentY = parseFloat(bird.style.top);
+    function createButterfly(targetX, targetY) {
+        const playArea = document.getElementById('play-area');
+        const butterflyElement = document.createElement('div');
+        butterflyElement.textContent = EMOJIS.BUTTERFLY;
+        butterflyElement.classList.add('emoji', 'butterfly');
+        butterflyElement.style.position = 'absolute';
+        butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
+        butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
+        playArea.appendChild(butterflyElement);
 
-                const distance = Math.random() * 10 + 5; // Walk distance, slower speed
-                const angle = Math.random() * Math.PI * 2; // Random angle
+        butterflyElement.hunger = 100; // Initialize hunger bar
+        moveButterfly(butterflyElement, targetX, targetY);
+    }
 
-                const newX = currentX + distance * Math.cos(angle);
-                const newY = currentY + distance * Math.sin(angle);
+    function moveButterfly(butterfly, targetX, targetY) {
+        const interval = setInterval(() => {
+            const currentX = parseFloat(butterfly.style.left);
+            const currentY = parseFloat(butterfly.style.top);
 
-                bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`; // Confining to map
-                bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`; // Confining to map
+            const angle = Math.random() * Math.PI * 2; // Random angle
+            const distance = Math.random() * 20 + 30; // Smaller distance for smoother movement
 
-                bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)'; // Simulate looking both ways
+            const newX = currentX + distance * Math.cos(angle);
+            const newY = currentY + distance * Math.sin(angle);
 
-                console.log('Bird walked to', bird.style.left, bird.style.top);
+            butterfly.style.left = `${newX}px`;
+            butterfly.style.top = `${newY}px`;
 
-                // Check for nearby worms
-                const worms = document.querySelectorAll('.worm');
-                worms.forEach(worm => {
-                    const wormRect = worm.getBoundingClientRect();
-                    const birdRect = bird.getBoundingClientRect();
-                    const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
-                    if (distance < 50) { // If within 50 pixels
-                        clearInterval(walkInterval);
-                        bird.style.left = `${wormRect.left}px`;
-                        bird.style.top = `${wormRect.top}px`;
-                        worm.remove();
-                        bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
-                        console.log('Bird ate a worm. Hunger:', bird.hunger);
-                        birdFlightPattern(bird, currentX, currentY);
-                    }
-                });
+            butterfly.hunger -= 1; // Decrease hunger over time
 
-                if (walkCount >= maxWalks) {
-                    clearInterval(walkInterval);
-                    bird.state = 'flying';
-                    console.log('Bird finished walking. Resuming flight.');
-                    birdFlightPattern(bird, currentX, currentY);
+            if (butterfly.hunger <= 0) {
+                clearInterval(interval);
+                butterflyLand(butterfly, targetX, targetY);
+            }
+        }, 300); // Slower interval for smoother, less jerky movement
+    }
+
+    function butterflyLand(butterfly, targetX, targetY) {
+        const bushes = document.querySelectorAll('.emoji');
+        let nearestBush = null;
+        let minDistance = Infinity;
+
+        bushes.forEach(bush => {
+            if (bush.textContent === EMOJIS.BUSH) {
+                const bushX = parseFloat(bush.style.left);
+                const bushY = parseFloat(bush.style.top);
+                const distance = Math.sqrt((bushX - targetX) ** 2 + (bushY - targetY) ** 2);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestBush = bush;
                 }
             }
-        }, 1000); // Interval for walking pattern, slower speed
+        });
+
+        if (nearestBush) {
+            butterfly.style.left = nearestBush.style.left;
+            butterfly.style.top = nearestBush.style.top;
+
+            setTimeout(() => {
+                butterfly.hunger = 100; // Reset hunger
+                moveButterfly(butterfly, parseFloat(nearestBush.style.left), parseFloat(nearestBush.style.top));
+            }, getRandomTime(5, 10) * 1000);
+        }
+    }
+
+    function getRandomTime(min, max) {
+        return Math.random() * (max - min) + min;
     }
 
     function getRandomEdgePosition(axis) {
@@ -204,14 +198,4 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
     }
-
-    // Ensure addBird is called for each tree
-    document.getElementById('play-area').addEventListener('dragend', (e) => {
-        const draggedEmoji = e.dataTransfer.getData('text');
-        if (draggedEmoji === EMOJIS.TREE) {
-            const x = e.clientX - playArea.offsetLeft;
-            const y = e.clientY - playArea.offsetTop;
-            addBird(x, y);
-        }
-    });
 });
