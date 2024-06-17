@@ -1,10 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
 
-    window.addBird = function(x, y) { // Attach addBird to window
+    window.addBird = function(x, y) {
         console.log('Tree placed at:', x, y);
 
-        // Set a random time for the bird to appear after the tree is placed
         const spawnTime = Math.random() * 8000 + 4000; // 4-12 seconds
         setTimeout(() => {
             console.log('Spawning bird after delay:', spawnTime);
@@ -19,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             birdElement.hunger = 100; // Initialize hunger bar
             birdElement.state = 'flying'; // Initial state
+            birdElement.walkCount = 0; // Initialize walk count
 
             console.log('Bird spawned with hunger:', birdElement.hunger, 'at position', birdElement.style.left, birdElement.style.top);
 
@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const flightInterval = setInterval(() => {
             if (bird.state === 'flying') {
-                // Throttle debug messages for flying state
                 if (Date.now() - lastDebugTime > 3000) { // Log every 3 seconds
                     console.log('Bird is flying at:', bird.style.left, bird.style.top);
                     lastDebugTime = Date.now();
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentY = parseFloat(bird.style.top);
 
                 const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 50 + 30; // Adjust distance for smoother flight
+                const distance = Math.random() * 50 + 30;
                 const newX = currentX + distance * Math.cos(angle);
                 const newY = currentY + distance * Math.sin(angle);
 
@@ -76,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     birdLandingDecision(bird, targetX, targetY);
                 }
             }
-        }, 500); // Increase interval for smoother, less frantic flight
+        }, 500);
 
         // Set timeout for changing state after flight time
         setTimeout(() => {
@@ -107,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bird.style.left = `${Math.random() * playArea.clientWidth}px`;
         bird.style.top = `${Math.random() * playArea.clientHeight}px`;
 
+        bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird);
     }
 
@@ -147,8 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function birdWalkingPattern(bird) {
         console.log('Bird walking on the ground.');
 
+        let walkCount = 0; // Counter for walks
+        const maxWalks = 2 + Math.floor(Math.random() * 2); // 2-3 walks
+
         const walkInterval = setInterval(() => {
             if (bird.state === 'walking') {
+                walkCount++;
                 const currentX = parseFloat(bird.style.left);
                 const currentY = parseFloat(bird.style.top);
 
@@ -161,8 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`; // Confining to map
                 bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`; // Confining to map
 
-                // Invert the emoji to simulate looking both ways
-                bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
+                bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)'; // Simulate looking both ways
 
                 console.log('Bird walked to', bird.style.left, bird.style.top);
 
@@ -183,18 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                const walkTime = Math.random() * 2000 + 1000; // 1-3 seconds, slower walking pattern
-                setTimeout(() => {
-                    if (bird.hunger <= 60) {
-                        bird.state = 'walking';
-                        clearInterval(walkInterval);
-                        birdWalkingPattern(bird);
-                    } else {
-                        bird.state = 'flying';
-                        console.log('Bird hunger above 60, resuming flight.');
-                        birdFlightPattern(bird, currentX, currentY);
-                    }
-                }, walkTime);
+                if (walkCount >= maxWalks) {
+                    clearInterval(walkInterval);
+                    bird.state = 'flying';
+                    console.log('Bird finished walking. Resuming flight.');
+                    birdFlightPattern(bird, currentX, currentY);
+                }
             }
         }, 1000); // Interval for walking pattern, slower speed
     }
@@ -207,4 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
     }
+
+    // Ensure addBird is called for each tree
+    document.getElementById('play-area').addEventListener('dragend', (e) => {
+        const draggedEmoji = e.dataTransfer.getData('text');
+        if (draggedEmoji === EMOJIS.TREE) {
+            const x = e.clientX - playArea.offsetLeft;
+            const y = e.clientY - playArea.offsetTop;
+            addBird(x, y);
+        }
+    });
 });
