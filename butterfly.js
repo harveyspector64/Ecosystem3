@@ -28,7 +28,7 @@ function moveButterfly(butterfly) {
 
 function butterflyFeeding(butterfly) {
     setInterval(() => {
-        const bushes = document.querySelectorAll('.bush');
+        const bushes = document.querySelectorAll('.floweringBush');
         if (bushes.length > 0) {
             const bush = bushes[Math.floor(Math.random() * bushes.length)];
             butterfly.style.left = bush.style.left;
