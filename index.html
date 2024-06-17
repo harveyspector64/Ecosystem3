@@ -1,29 +1,19 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Ecosystem Simulation</title>
+    <title>Emoji Ecosystem Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="emoji-panel">
-        <!-- Emoji buttons go here -->
+    <div id="sidebar">
+        <div id="flowering-bush" class="emoji" draggable="true">🌺</div>
+        <div id="tree" class="emoji disabled" draggable="false">🌳</div>
     </div>
-    <div id="play-area">
-        <!-- Ecosystem simulation area -->
-    </div>
-    <div id="inventory">
-        <!-- Inventory items will be displayed here in the future -->
-    </div>
-    <div id="game-info">
-        <!-- Day/Night cycle, weather, and other game info will be displayed here -->
-    </div>
+    <div id="play-area"></div>
     <script src="constants.js"></script>
-    <script src="ui.js"></script>
-    <script src="butterfly.js"></script>
-    <script src="bird.js"></script>
-    <script src="worm.js"></script>
-    <script src="game_logic.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
