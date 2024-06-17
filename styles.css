@@ -1,120 +1,55 @@
+
 body {
+    display: flex;
+    margin: 0;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+#sidebar {
+    width: 150px;
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-right: 1px solid #ccc;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0;
-    font-family: Arial, sans-serif;
-}
-
-#emoji-panel {
-    display: flex;
-    justify-content: center;
-    margin: 20px;
+    overflow-y: auto; /* Scrollable sidebar */
 }
 
 #play-area {
-    width: 80%;
-    height: 80vh;
-    border: 1px solid #ccc;
+    flex: 1;
+    background-color: #ffffff;
     position: relative;
     overflow: hidden;
-}
-
-#inventory {
-    display: flex;
-    justify-content: center;
-    margin: 20px;
-}
-
-#game-info {
-    display: flex;
-    justify-content: center;
-    margin: 20px;
+    touch-action: none; /* Prevent default touch actions */
 }
 
 .emoji {
-    font-size: 2em;
+    font-size: 20px; /* Size for panel emojis */
     cursor: pointer;
-    margin: 5px;
+    margin: 10px 0;
+    touch-action: none; /* Prevent touch actions on emojis */
+}
+
+.disabled {
+    color: #ccc;
 }
 
 .butterfly {
-    opacity: 0.8; /* Slight transparency */
-    font-size: 1.5em; /* Smaller size */
+    font-size: 15px; /* Smaller size for butterflies */
+    opacity: 0.7; /* Slightly transparent */
 }
 
 .tree {
-    font-size: 3em; /* Larger size */
-}
-
-.floweringBush {
-    font-size: 2.5em; /* Medium-large size */
+    font-size: 80px; /* Larger size for trees */
 }
 
 .bird {
-    font-size: 2em; /* Standard size */
+    font-size: 30px; /* Relative size for birds */
 }
 
 .worm {
-    font-size: 1.2em; /* Smaller size */
-}
-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    font-family: Arial, sans-serif;
-}
-
-#emoji-panel {
-    display: flex;
-    justify-content: center;
-    margin: 20px;
-}
-
-#play-area {
-    width: 80%;
-    height: 80vh;
-    border: 1px solid #ccc;
-    position: relative;
-    overflow: hidden;
-}
-
-#inventory {
-    display: flex;
-    justify-content: center;
-    margin: 20px;
-}
-
-#game-info {
-    display: flex;
-    justify-content: center;
-    margin: 20px;
-}
-
-.emoji {
-    font-size: 2em;
-    cursor: pointer;
-    margin: 5px;
-}
-
-.butterfly {
-    opacity: 0.8; /* Slight transparency */
-    font-size: 1.5em; /* Smaller size */
-}
-
-.tree {
-    font-size: 3em; /* Larger size */
-}
-
-.floweringBush {
-    font-size: 2.5em; /* Medium-large size */
-}
-
-.bird {
-    font-size: 2em; /* Standard size */
-}
-
-.worm {
-    font-size: 1.2em; /* Smaller size */
+    font-size: 10px; /* Smaller size for worms */
 }
