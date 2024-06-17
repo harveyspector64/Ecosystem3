@@ -1,37 +1,44 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
-    
-    // Initialize bird-related variables
-    let birdCount = 0;
 
     function addBird(x, y) {
-        console.log('Adding bird at coordinates:', x, y);
+        console.log('Tree placed at:', x, y);
 
-        const birdElement = document.createElement('div');
-        birdElement.textContent = EMOJIS.BIRD;
-        birdElement.classList.add('emoji', 'bird');
-        birdElement.style.position = 'absolute';
-        birdElement.style.left = getRandomEdgePosition('x') + 'px';
-        birdElement.style.top = getRandomEdgePosition('y') + 'px';
-        playArea.appendChild(birdElement);
+        // Set a random time for the bird to appear after the tree is placed
+        const spawnTime = Math.random() * 8000 + 4000; // 4-12 seconds
+        setTimeout(() => {
+            console.log('Spawning bird after delay:', spawnTime);
 
-        birdElement.hunger = 100; // Initialize hunger bar
-        birdElement.state = 'flying'; // Initial state
+            const birdElement = document.createElement('div');
+            birdElement.textContent = EMOJIS.BIRD;
+            birdElement.classList.add('emoji', 'bird');
+            birdElement.style.position = 'absolute';
+            birdElement.style.left = getRandomEdgePosition('x') + 'px';
+            birdElement.style.top = getRandomEdgePosition('y') + 'px';
+            playArea.appendChild(birdElement);
 
-        console.log('Bird initialized with hunger:', birdElement.hunger);
+            birdElement.hunger = 100; // Initialize hunger bar
+            birdElement.state = 'flying'; // Initial state
 
-        moveBird(birdElement, x, y);
+            console.log('Bird spawned with hunger:', birdElement.hunger);
+
+            birdFlightPattern(birdElement);
+        }, spawnTime);
     }
 
-    function moveBird(bird, targetX, targetY) {
-        console.log('Bird starting flight from', bird.style.left, bird.style.top);
+    function birdFlightPattern(bird) {
+        console.log('Bird entering flight state.');
+
+        bird.state = 'flying';
+        const flightTime = Math.random() * 10000 + 10000; // 10-20 seconds
 
         const flightInterval = setInterval(() => {
             if (bird.state === 'flying') {
+                console.log('Bird is flying.');
+
                 const currentX = parseFloat(bird.style.left);
                 const currentY = parseFloat(bird.style.top);
 
-                // Calculate new position with random angles and distances
                 const angle = Math.random() * Math.PI * 2;
                 const distance = Math.random() * 100 + 50;
                 const newX = currentX + distance * Math.cos(angle);
@@ -44,68 +51,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log('Bird moved to', bird.style.left, bird.style.top, 'with hunger', bird.hunger);
 
-                // Decide if the bird should land
-                const flightTime = Math.random() * 10000 + 10000; // 10-20 seconds
-                setTimeout(() => {
-                    if (bird.hunger <= 60) {
-                        clearInterval(flightInterval);
-                        bird.state = 'landing';
-                        console.log('Bird hunger below 60, preparing to land.');
-                        landBird(bird, targetX, targetY);
-                    } else {
-                        console.log('Bird continuing flight.');
-                        bird.state = 'flying';
-                    }
-                }, flightTime);
+                if (bird.hunger <= 60) {
+                    clearInterval(flightInterval);
+                    console.log('Bird hunger below 60, preparing to land.');
+                    birdLandingDecision(bird);
+                }
             }
-        }, 300); // Movement interval
+        }, 300);
+
+        // Set timeout for changing state after flight time
+        setTimeout(() => {
+            if (bird.state === 'flying') {
+                clearInterval(flightInterval);
+                console.log('Bird completing flight time, preparing to land.');
+                birdLandingDecision(bird);
+            }
+        }, flightTime);
     }
 
-    function landBird(bird, targetX, targetY) {
+    function birdLandingDecision(bird) {
+        console.log('Bird deciding where to land. Hunger:', bird.hunger);
+
         if (bird.hunger <= 60) {
-            // Land on the tree
-            console.log('Bird is landing on the tree due to low hunger.');
-            const trees = document.querySelectorAll('.tree');
-            let nearestTree = null;
-            let minDistance = Infinity;
-
-            trees.forEach(tree => {
-                const treeX = parseFloat(tree.style.left);
-                const treeY = parseFloat(tree.style.top);
-                const distance = Math.sqrt((treeX - targetX) ** 2 + (treeY - targetY) ** 2);
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestTree = tree;
-                }
-            });
-
-            if (nearestTree) {
-                const treeX = parseFloat(nearestTree.style.left);
-                const treeY = parseFloat(nearestTree.style.top);
-                bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
-                bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
-
-                const roostTime = Math.random() * 3000 + 3000; // 3-6 seconds
-                setTimeout(() => {
-                    bird.hunger = 100; // Reset hunger after roosting
-                    bird.state = 'flying';
-                    console.log('Bird has roosted and reset hunger. Resuming flight.');
-                    moveBird(bird, targetX, targetY);
-                }, roostTime);
-            }
+            console.log('Bird hunger below 60, landing on the ground.');
+            birdLandOnGround(bird);
         } else {
-            // Land on the ground
-            console.log('Bird is landing on the ground.');
-            bird.style.left = `${targetX}px`;
-            bird.style.top = `${targetY}px`;
+            console.log('Bird hunger above 60, landing on a tree.');
+            birdLandOnTree(bird);
+        }
+    }
 
-            birdWalkingPattern(bird);
+    function birdLandOnGround(bird) {
+        console.log('Bird landing on the ground.');
+
+        bird.state = 'walking';
+        bird.style.left = `${Math.random() * playArea.clientWidth}px`;
+        bird.style.top = `${Math.random() * playArea.clientHeight}px`;
+
+        birdWalkingPattern(bird);
+    }
+
+    function birdLandOnTree(bird) {
+        console.log('Bird landing on a tree.');
+
+        const trees = document.querySelectorAll('.tree');
+        let nearestTree = null;
+        let minDistance = Infinity;
+
+        trees.forEach(tree => {
+            const treeX = parseFloat(tree.style.left);
+            const treeY = parseFloat(tree.style.top);
+            const distance = Math.sqrt((treeX - parseFloat(bird.style.left)) ** 2 + (treeY - parseFloat(bird.style.top)) ** 2);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestTree = tree;
+            }
+        });
+
+        if (nearestTree) {
+            const treeX = parseFloat(nearestTree.style.left);
+            const treeY = parseFloat(nearestTree.style.top);
+            bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
+            bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
+
+            console.log('Bird landed on tree at', bird.style.left, bird.style.top);
+
+            const roostTime = Math.random() * 3000 + 3000; // 3-6 seconds
+            setTimeout(() => {
+                bird.hunger = 100; // Reset hunger after roosting
+                console.log('Bird has roosted and reset hunger. Resuming flight.');
+                birdFlightPattern(bird);
+            }, roostTime);
         }
     }
 
     function birdWalkingPattern(bird) {
-        console.log('Bird is walking on the ground.');
+        console.log('Bird walking on the ground.');
 
         const walkInterval = setInterval(() => {
             if (bird.state === 'walking') {
@@ -131,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         birdWalkingPattern(bird);
                     } else {
                         bird.state = 'flying';
-                        moveBird(bird, newX, newY);
+                        console.log('Bird hunger above 60, resuming flight.');
+                        birdFlightPattern(bird);
                     }
                 }, walkTime);
             }
