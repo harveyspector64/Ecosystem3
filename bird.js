@@ -1,4 +1,4 @@
-function birdFlightPattern(bird, targetX, targetY, isHunting) {
+function birdFlightPattern(bird, targetX, targetY, isHunting, playArea) {
     console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
 
     bird.state = 'flying';
@@ -45,7 +45,7 @@ function birdFlightPattern(bird, targetX, targetY, isHunting) {
             if (bird.hunger <= 60 && !isHunting) {
                 clearInterval(flightInterval);
                 console.log('Bird hunger below 60, continuing to fly but in hunting mode.');
-                birdFlightPattern(bird, targetX, targetY, true);
+                birdFlightPattern(bird, targetX, targetY, true, playArea);
             }
         }
     }, 500);
@@ -55,24 +55,24 @@ function birdFlightPattern(bird, targetX, targetY, isHunting) {
         if (bird.state === 'flying') {
             clearInterval(flightInterval);
             console.log('Bird completing flight time, preparing to land.');
-            birdLandingDecision(bird, targetX, targetY, isHunting);
+            birdLandingDecision(bird, targetX, targetY, isHunting, playArea);
         }
     }, flightTime);
 }
 
-function birdLandingDecision(bird, targetX, targetY, isHunting) {
+function birdLandingDecision(bird, targetX, targetY, isHunting, playArea) {
     console.log('Bird deciding where to land. Hunger:', bird.hunger);
 
     if (bird.hunger <= 60 && isHunting) {
         console.log('Bird hunger below 60, landing on the ground.');
-        birdLandOnGround(bird);
+        birdLandOnGround(bird, playArea);
     } else {
         console.log('Bird hunger above 60, flying to a tree to land.');
-        birdFlyToTree(bird, targetX, targetY);
+        birdFlyToTree(bird, targetX, targetY, playArea);
     }
 }
 
-function birdFlyToTree(bird, targetX, targetY) {
+function birdFlyToTree(bird, targetX, targetY, playArea) {
     console.log('Bird flying to tree.');
 
     bird.state = 'flying';
@@ -91,7 +91,7 @@ function birdFlyToTree(bird, targetX, targetY) {
 
             if (distance < 10) {
                 clearInterval(flyInterval);
-                birdLandOnTree(bird, treeX, treeY);
+                birdLandOnTree(bird, treeX, treeY, playArea);
             } else {
                 const angle = Math.atan2(dy, dx);
                 const speed = 5; // Speed of flying towards the tree
@@ -104,14 +104,14 @@ function birdFlyToTree(bird, targetX, targetY) {
     }
 }
 
-function birdLandOnGround(bird) {
+function birdLandOnGround(bird, playArea) {
     console.log('Bird landing on the ground.');
 
     bird.state = 'landing';
     setTimeout(() => {
         bird.state = 'walking';
         bird.walkCount = 0; // Reset walk count
-        birdWalkingPattern(bird);
+        birdWalkingPattern(bird, playArea);
 
         if (!firstBirdLanded) {
             firstBirdLanded = true;
@@ -120,7 +120,7 @@ function birdLandOnGround(bird) {
     }, 500); // Short delay to simulate smooth landing
 }
 
-function birdLandOnTree(bird, treeX, treeY) {
+function birdLandOnTree(bird, treeX, treeY, playArea) {
     console.log('Bird landing on a tree.');
 
     bird.state = 'landing';
@@ -133,12 +133,12 @@ function birdLandOnTree(bird, treeX, treeY) {
         const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
         setTimeout(() => {
             console.log('Bird has roosted. Resuming flight.');
-            birdFlightPattern(bird, treeX, treeY, false);
+            birdFlightPattern(bird, treeX, treeY, false, playArea);
         }, roostTime);
     }, 500); // Short delay to simulate smooth landing
 }
 
-function birdWalkingPattern(bird) {
+function birdWalkingPattern(bird, playArea) {
     console.log('Bird walking on the ground.');
 
     let walkCount = 0; // Counter for walks
@@ -176,7 +176,7 @@ function birdWalkingPattern(bird) {
                     worm.remove();
                     bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
                     console.log('Bird ate a worm. Hunger:', bird.hunger);
-                    birdFlightPattern(bird, currentX, currentY, true);
+                    birdFlightPattern(bird, currentX, currentY, true, playArea);
                 }
             });
 
@@ -184,19 +184,10 @@ function birdWalkingPattern(bird) {
                 clearInterval(walkInterval);
                 bird.state = 'flying';
                 console.log('Bird finished walking. Resuming flight.');
-                birdFlightPattern(bird, currentX, currentY, true);
+                birdFlightPattern(bird, currentX, currentY, true, playArea);
             }
         }
     }, 1000); // Interval for walking pattern, slower speed
-}
-
-function getRandomEdgePosition(axis) {
-    const playArea = document.getElementById('play-area');
-    if (axis === 'x') {
-        return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20; // Adjust 20 for margin
-    } else {
-        return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
-    }
 }
 
 function getNearestTree(targetX, targetY) {
