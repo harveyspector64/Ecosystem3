@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
 
-    function addBird(x, y) {
+    window.addBird = function(x, y) { // Attach addBird to window
         console.log('Tree placed at:', x, y);
 
         // Set a random time for the bird to appear after the tree is placed
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             birdFlightPattern(birdElement, x, y);
         }, spawnTime);
-    }
+    };
 
     function birdFlightPattern(bird, targetX, targetY) {
         console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
