@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function addBird(x, y) {
         console.log('Tree placed at:', x, y);
 
+        // Set a random time for the bird to appear after the tree is placed
         const spawnTime = Math.random() * 8000 + 4000; // 4-12 seconds
         setTimeout(() => {
             console.log('Spawning bird after delay:', spawnTime);
@@ -16,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
             birdElement.style.top = getRandomEdgePosition('y') + 'px';
             playArea.appendChild(birdElement);
 
-            birdElement.hunger = 100;
-            birdElement.state = 'flying';
+            birdElement.hunger = 100; // Initialize hunger bar
+            birdElement.state = 'flying'; // Initial state
 
             console.log('Bird spawned with hunger:', birdElement.hunger, 'at position', birdElement.style.left, birdElement.style.top);
 
@@ -39,23 +40,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentY = parseFloat(bird.style.top);
 
                 const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 50 + 30; // Adjusted distance for smoother movement
-
+                const distance = Math.random() * 100 + 50;
                 const newX = currentX + distance * Math.cos(angle);
                 const newY = currentY + distance * Math.sin(angle);
 
-                // Keep the bird within the play area boundaries
-                const playAreaWidth = playArea.clientWidth;
-                const playAreaHeight = playArea.clientHeight;
-                const birdSize = 20; // Adjust based on the bird emoji size
+                bird.style.left = `${newX}px`;
+                bird.style.top = `${newY}px`;
 
-                const clampedX = Math.min(Math.max(newX, birdSize), playAreaWidth - birdSize);
-                const clampedY = Math.min(Math.max(newY, birdSize), playAreaHeight - birdSize);
-
-                bird.style.left = `${clampedX}px`;
-                bird.style.top = `${clampedY}px`;
-
-                bird.hunger -= 1;
+                bird.hunger -= 1; // Decrease hunger over time
 
                 console.log('Bird moved to', bird.style.left, bird.style.top, 'with hunger', bird.hunger);
 
@@ -67,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 300);
 
+        // Set timeout for changing state after flight time
         setTimeout(() => {
             if (bird.state === 'flying') {
                 clearInterval(flightInterval);
@@ -126,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const roostTime = Math.random() * 3000 + 3000; // 3-6 seconds
             setTimeout(() => {
-                bird.hunger = 100;
+                bird.hunger = 100; // Reset hunger after roosting
                 console.log('Bird has roosted and reset hunger. Resuming flight.');
                 birdFlightPattern(bird, targetX, targetY);
             }, roostTime);
@@ -141,8 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentX = parseFloat(bird.style.left);
                 const currentY = parseFloat(bird.style.top);
 
-                const distance = Math.random() * 20 + 10;
-                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 20 + 10; // Walk distance
+                const angle = Math.random() * Math.PI * 2; // Random angle
 
                 const newX = currentX + distance * Math.cos(angle);
                 const newY = currentY + distance * Math.sin(angle);
@@ -151,19 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 bird.style.top = `${newY}px`;
 
                 console.log('Bird walked to', bird.style.left, bird.style.top);
-
-                // Check for worms nearby
-                const worms = document.querySelectorAll('.worm');
-                const birdRect = bird.getBoundingClientRect();
-
-                worms.forEach(worm => {
-                    const wormRect = worm.getBoundingClientRect();
-                    if (isColliding(birdRect, wormRect)) {
-                        console.log('Bird found a worm and is eating it.');
-                        worm.remove();
-                        bird.hunger += 20; // Increase hunger meter
-                    }
-                });
 
                 const walkTime = Math.random() * 1000 + 500; // 0.5-1.5 seconds
                 setTimeout(() => {
@@ -178,27 +158,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }, walkTime);
             }
-        }, 300);
-    }
-
-    function isColliding(rect1, rect2) {
-        return (
-            rect1.left < rect2.right &&
-            rect1.right > rect2.left &&
-            rect1.top < rect2.bottom &&
-            rect1.bottom > rect2.top
-        );
+        }, 300); // Interval for walking pattern
     }
 
     function getRandomEdgePosition(axis) {
         const playArea = document.getElementById('play-area');
         if (axis === 'x') {
-            return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20;
+            return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20; // Adjust 20 for margin
         } else {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
     }
 
+    // Initial setup for adding bird on tree
     document.getElementById('tree').addEventListener('dragend', (e) => {
         const x = e.clientX - playArea.offsetLeft;
         const y = e.clientY - playArea.offsetTop;
