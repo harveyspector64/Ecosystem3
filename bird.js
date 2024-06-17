@@ -1,9 +1,11 @@
-// bird.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
+    let birdSpawned = false; // Flag to ensure only one bird spawns per tree
 
-    window.addBird = function(x, y) { // Attach addBird to window
+    window.addBird = function(x, y) {
+        if (birdSpawned) return; // Ensure only one bird spawns per tree
+        birdSpawned = true;
+
         console.log('Tree placed at:', x, y);
 
         // Set a random time for the bird to appear after the tree is placed
@@ -36,13 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const flightInterval = setInterval(() => {
             if (bird.state === 'flying') {
-                console.log('Bird is flying at:', bird.style.left, bird.style.top);
+                // Throttle debug messages for flying state
+                if (Math.random() < 0.1) {
+                    console.log('Bird is flying at:', bird.style.left, bird.style.top);
+                }
 
                 const currentX = parseFloat(bird.style.left);
                 const currentY = parseFloat(bird.style.top);
 
                 const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 100 + 50;
+                const distance = Math.random() * 50 + 30; // Adjust distance for smoother flight
                 const newX = currentX + distance * Math.cos(angle);
                 const newY = currentY + distance * Math.sin(angle);
 
@@ -51,7 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 bird.hunger -= 1; // Decrease hunger over time
 
-                console.log('Bird moved to', bird.style.left, bird.style.top, 'with hunger', bird.hunger);
+                if (Math.random() < 0.1) {
+                    console.log('Bird moved to', bird.style.left, bird.style.top, 'with hunger', bird.hunger);
+                }
 
                 if (bird.hunger <= 60) {
                     clearInterval(flightInterval);
@@ -59,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     birdLandingDecision(bird, targetX, targetY);
                 }
             }
-        }, 300);
+        }, 500); // Increase interval for smoother, less frantic flight
 
         // Set timeout for changing state after flight time
         setTimeout(() => {
