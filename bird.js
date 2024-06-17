@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
 
         bird.state = 'flying';
-        const flightTime = (Math.random() * 15000 + 10000) + (isHunting ? 10000 : 0); // 10-25 seconds + extra 10s if hunting
+        const flightTime = (Math.random() * 10000 + 5000); // 5-15 seconds
         let lastDebugTime = Date.now(); // Timestamp for throttling debug messages
 
         const flightInterval = setInterval(() => {
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log('Bird landed on tree at', bird.style.left, bird.style.top);
 
-                const roostTime = Math.random() * 15000 + 10000; // 10-25 seconds
+                const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
                 setTimeout(() => {
                     console.log('Bird has roosted. Resuming flight.');
                     birdFlightPattern(bird, treeX, treeY, false);
