@@ -240,7 +240,7 @@ function birdWalkingPattern(bird, playArea) {
                                     clearInterval(walkInterval);
                                     bird.state = 'flying';
                                     console.log('Bird finished walking. Resuming flight.');
-                                    birdFlightPattern(bird, currentX, currentY, true, playArea);
+                                    birdFlightPattern(bird, parseFloat(bird.style.left), parseFloat(bird.style.top), true, playArea);
                                 }
                             }, pauseDuration);
                         }
