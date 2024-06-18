@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
     let draggedEmoji = null;
+    let firstBirdLanded = false;
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
@@ -173,3 +174,4 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 });
+
