@@ -131,6 +131,8 @@ function birdLandOnGround(bird, playArea) {
     console.log('Bird landing on the ground.');
 
     bird.state = 'landing';
+    bird.style.transition = 'top 0.5s, left 0.5s';
+    bird.style.top = `${parseFloat(bird.style.top) + 20}px`; // Descend a bit to simulate landing
     setTimeout(() => {
         bird.state = 'walking';
         bird.walkCount = 0; // Reset walk count
@@ -173,7 +175,8 @@ function birdWalkingPattern(bird, playArea) {
             const currentX = parseFloat(bird.style.left);
             const currentY = parseFloat(bird.style.top);
 
-            const distance = Math.random() * 10 + 5; // Walk distance, slower speed
+            // Smaller, hop-like steps
+            const distance = Math.random() * 5 + 2; // Shorter distance for hop-like movement
             const angle = Math.random() * Math.PI * 2; // Random angle
 
             const newX = currentX + distance * Math.cos(angle);
@@ -184,6 +187,7 @@ function birdWalkingPattern(bird, playArea) {
 
             // Simulate looking both ways with pauses and emoji flip
             bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
+            bird.style.transition = 'top 0.3s, left 0.3s'; // Smooth transition for hops
 
             console.log('Bird walked to', bird.style.left, bird.style.top);
 
