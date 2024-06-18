@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Function to add emoji to play area
     function addEmojiToPlayArea(emoji, x, y, playArea) {
         const emojiElement = document.createElement('div');
         emojiElement.textContent = emoji;
@@ -172,18 +173,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function getRandomTime(min, max) {
         return Math.random() * (max - min) + min;
     }
+
+    // Ensure the worm is correctly added to the sidebar with event listeners
+    function addWormToPanel() {
+        const wormElement = document.createElement('div');
+        wormElement.id = 'worm';
+        wormElement.classList.add('emoji');
+        wormElement.textContent = EMOJIS.WORM;
+        wormElement.setAttribute('draggable', 'true');
+        wormElement.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', EMOJIS.WORM);
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        sidebar.appendChild(wormElement);
+    }
+
+    // Call this function when the first bird lands
+    function addWormToPanelWhenFirstBirdLands() {
+        if (!firstBirdLanded) {
+            firstBirdLanded = true;
+            addWormToPanel();
+        }
+    }
 });
-
-function addWormToPanel() {
-    const wormElement = document.createElement('div');
-    wormElement.id = 'worm';
-    wormElement.classList.add('emoji');
-    wormElement.textContent = EMOJIS.WORM;
-    wormElement.setAttribute('draggable', 'true');
-    wormElement.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', EMOJIS.WORM);
-    });
-
-    const sidebar = document.getElementById('sidebar');
-    sidebar.appendChild(wormElement);
-}
