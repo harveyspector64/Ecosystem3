@@ -15,12 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Handle drag start event
         element.addEventListener('dragstart', (e) => {
+            console.log(`Drag start: ${item.emoji}`);
             draggedEmoji = item.emoji;
         });
 
         // Handle touch start event for mobile
         element.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            console.log(`Touch start: ${item.emoji}`);
             draggedEmoji = item.emoji;
         });
     });
@@ -28,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle drag over event in play area
     playArea.addEventListener('dragover', (e) => {
         e.preventDefault();
+        console.log('Drag over play area');
     });
 
     // Handle drop event in play area
@@ -36,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (draggedEmoji) {
             const x = e.clientX - playArea.offsetLeft;
             const y = e.clientY - playArea.offsetTop;
+            console.log(`Drop: ${draggedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
         }
@@ -47,12 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const touch = e.changedTouches[0];
             const x = touch.clientX - playArea.offsetLeft;
             const y = touch.clientY - playArea.offsetTop;
+            console.log(`Touch end: ${draggedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
         }
     });
 
-    // Function to add emoji to play area
     function addEmojiToPlayArea(emoji, x, y, playArea) {
         const emojiElement = document.createElement('div');
         emojiElement.textContent = emoji;
@@ -182,11 +186,13 @@ document.addEventListener('DOMContentLoaded', () => {
         wormElement.textContent = EMOJIS.WORM;
         wormElement.setAttribute('draggable', 'true');
         wormElement.addEventListener('dragstart', (e) => {
+            console.log('Drag start: 🐛');
             e.dataTransfer.setData('text/plain', EMOJIS.WORM);
         });
 
         const sidebar = document.getElementById('sidebar');
         sidebar.appendChild(wormElement);
+        console.log('Worm added to sidebar');
     }
 
     // Call this function when the first bird lands
