@@ -47,7 +47,7 @@ body {
 
 .bird {
     font-size: 30px; /* Relative size for birds */
-    content: '🐦'; /* Default placeholder */
+    content: '🐦'; /* Default to red robin */
 }
 
 .worm {
@@ -61,4 +61,3 @@ body {
         content: '🦅'; /* Use crow emoji for Apple */
     }
 }
-
