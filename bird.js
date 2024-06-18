@@ -88,7 +88,7 @@ function birdLandingDecision(bird, playArea) {
 
     if (bird.hunger <= 60) {
         console.log('Bird hunger below 60, landing on the ground.');
-        birdLandOnGround(bird, playArea);
+        birdDescendToGround(bird, playArea);
     } else {
         console.log('Bird hunger above 60, flying to a tree to land.');
         birdFlyToTree(bird, playArea);
@@ -127,10 +127,10 @@ function birdFlyToTree(bird, playArea) {
     }
 }
 
-function birdLandOnGround(bird, playArea) {
-    console.log('Bird landing on the ground.');
+function birdDescendToGround(bird, playArea) {
+    console.log('Bird descending to land on the ground.');
 
-    bird.state = 'landing';
+    bird.state = 'descending';
     bird.style.transition = 'top 0.5s, left 0.5s';
     bird.style.top = `${parseFloat(bird.style.top) + 20}px`; // Descend a bit to simulate landing
     setTimeout(() => {
@@ -183,7 +183,7 @@ function birdWalkingPattern(bird, playArea) {
                         const currentY = parseFloat(bird.style.top);
 
                         // Smaller, hop-like steps
-                        const distance = Math.random() * 10 + 5; // Increase the distance a bit
+                        const distance = Math.random() * 5 + 2; // Shorter distance for hop-like movement
                         const angle = Math.random() * Math.PI * 2; // Random angle
 
                         const newX = currentX + distance * Math.cos(angle);
