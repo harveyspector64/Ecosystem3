@@ -2,7 +2,7 @@ const EMOJIS = {
     BUSH: '🌺',
     TREE: '🌳',
     BUTTERFLY: '🦋',
-    BIRD: '🦉',  // Ensure this matches your desired bird emoji
+    BIRD: '🐦',  // Red Robin emoji for general use
     WORM: '🐛'
 };
 
