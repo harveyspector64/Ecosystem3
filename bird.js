@@ -86,7 +86,7 @@ function birdFlightPattern(bird, targetX, targetY, isHunting, playArea) {
 function birdLandingDecision(bird, targetX, targetY, isHunting, playArea) {
     console.log('Bird deciding where to land. Hunger:', bird.hunger);
 
-    if (bird.hunger <= 60 && isHunting) {
+    if (bird.hunger <= 60) {
         console.log('Bird hunger below 60, landing on the ground.');
         birdLandOnGround(bird, playArea);
     } else {
