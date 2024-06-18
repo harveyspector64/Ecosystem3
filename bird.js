@@ -297,6 +297,11 @@ function birdMoveToWorm(bird, worm, playArea) {
             if (!foundWorm) {
                 birdAscendAndFlight(bird, playArea);
             }
+        } else if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
+            // Boundary check during worm movement
+            clearInterval(moveInterval);
+            console.log(`Bird hit the boundary while moving to worm at: ${newX} ${newY}`);
+            birdAscendAndFlight(bird, playArea);
         }
     }, 500); // Interval for hop-like movement
 }
