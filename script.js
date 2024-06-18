@@ -12,19 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             element.setAttribute('draggable', 'true');
         }
+    });
 
-        // Handle drag start event
-        element.addEventListener('dragstart', (e) => {
-            console.log(`Drag start: ${item.emoji}`);
-            draggedEmoji = item.emoji;
-        });
+    // Use event delegation for dragstart event on sidebar
+    sidebar.addEventListener('dragstart', (e) => {
+        const draggedElement = e.target;
+        if (!draggedElement.classList.contains('emoji')) return; // Ignore non-emoji elements
 
-        // Handle touch start event for mobile
-        element.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            console.log(`Touch start: ${item.emoji}`);
-            draggedEmoji = item.emoji;
-        });
+        draggedEmoji = draggedElement.textContent;  // Get emoji directly from element
+        console.log(`Drag start: ${draggedEmoji}`);
     });
 
     // Ensure the worm is correctly added to the sidebar with event listeners
@@ -34,12 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         wormElement.classList.add('emoji');
         wormElement.textContent = EMOJIS.WORM;
         wormElement.setAttribute('draggable', 'true');
-        wormElement.addEventListener('dragstart', (e) => {
-            console.log('Drag start: 🐛');
-            e.dataTransfer.setData('text/plain', EMOJIS.WORM);
-            draggedEmoji = EMOJIS.WORM;
-        });
-
         sidebar.appendChild(wormElement);
         console.log('Worm added to sidebar');
     }
@@ -87,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function addEmojiToPlayArea(emoji, x, y, playArea) {
+        console.log(`Adding ${emoji} to play area at (${x}, ${y})`); // Added log
         const emojiElement = document.createElement('div');
         emojiElement.textContent = emoji;
 
@@ -108,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emojiElement.style.top = `${y}px`;
         playArea.appendChild(emojiElement);
 
-        console.log(`Added ${emoji} to play area at (${x}, ${y})`);
+        console.log(`Added ${emoji} to play area at (${x}, ${y})`); // Added log
 
         // Additional logic for specific emojis
         if (emoji === EMOJIS.BUSH) {
