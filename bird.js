@@ -193,7 +193,7 @@ function birdWalkingPattern(bird, playArea) {
 
                         console.log('Bird walked to', bird.style.left, bird.style.top);
 
-                        // Check for nearby worms
+                        // Check for nearby worms during each step
                         const worms = document.querySelectorAll('.worm');
                         let nearestWorm = null;
                         let minDistance = Infinity;
@@ -255,11 +255,15 @@ function birdMoveToWorm(bird, worm, playArea) {
         const currentX = parseFloat(bird.style.left);
         const currentY = parseFloat(bird.style.top);
 
-        const newX = currentX + speed * Math.cos(angle);
-        const newY = currentY + speed * Math.sin(angle);
+        // Move in hop-like steps towards the worm
+        const distance = Math.random() * 5 + 2;
+        const newX = currentX + distance * Math.cos(angle);
+        const newY = currentY + distance * Math.sin(angle);
 
         bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
         bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
+
+        bird.style.transition = 'top 0.3s, left 0.3s';
 
         const newBirdRect = bird.getBoundingClientRect();
 
@@ -287,7 +291,7 @@ function birdMoveToWorm(bird, worm, playArea) {
                 birdAscendAndFlight(bird, playArea);
             }
         }
-    }, 100);
+    }, 500); // Interval for hop-like movement
 }
 
 function birdAscendAndFlight(bird, playArea) {
