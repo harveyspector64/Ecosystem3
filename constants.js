@@ -1,12 +1,9 @@
-
-// constants.js
-
 const EMOJIS = {
     BUSH: '🌺',
     TREE: '🌳',
     BUTTERFLY: '🦋',
     BIRD: '🐦',
-    WORM: '🐛'
+    WORM: '🐛' // Caterpillar emoji for worm
 };
 
 const INITIAL_EMOJIS = [
