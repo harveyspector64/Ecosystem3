@@ -195,21 +195,25 @@ function birdWalkingPattern(bird, playArea) {
 
                         // Check for nearby worms
                         const worms = document.querySelectorAll('.worm');
+                        let nearestWorm = null;
+                        let minDistance = Infinity;
+
                         worms.forEach(worm => {
                             const wormRect = worm.getBoundingClientRect();
                             const birdRect = bird.getBoundingClientRect();
                             const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
-                            if (distance < 50) { // If within 50 pixels
-                                clearInterval(stepInterval);
-                                clearInterval(walkInterval);
-                                bird.style.left = `${wormRect.left}px`;
-                                bird.style.top = `${wormRect.top}px`;
-                                worm.remove();
-                                bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
-                                console.log('Bird ate a worm. Hunger:', bird.hunger);
-                                birdAscendAndFlight(bird, playArea);
+                            if (distance < minDistance && distance < 100) { // If within 100 pixels and nearest
+                                minDistance = distance;
+                                nearestWorm = worm;
                             }
                         });
+
+                        if (nearestWorm) {
+                            clearInterval(stepInterval);
+                            clearInterval(walkInterval);
+                            console.log('Bird sees a worm and moves towards it.');
+                            birdMoveToWorm(bird, nearestWorm, playArea);
+                        }
                     } else {
                         clearInterval(stepInterval);
                         if (bird.state === 'walking') {
@@ -232,6 +236,34 @@ function birdWalkingPattern(bird, playArea) {
             performSteps();
         }
     }, 1000); // Initial delay before starting the walking pattern
+}
+
+function birdMoveToWorm(bird, worm, playArea) {
+    bird.state = 'movingToWorm';
+    const wormRect = worm.getBoundingClientRect();
+    const birdRect = bird.getBoundingClientRect();
+
+    const dx = wormRect.left - birdRect.left;
+    const dy = wormRect.top - birdRect.top;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < 10) {
+        // Eat the worm
+        worm.remove();
+        bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
+        console.log('Bird ate a worm. Hunger:', bird.hunger);
+        birdAscendAndFlight(bird, playArea);
+    } else {
+        const angle = Math.atan2(dy, dx);
+        const speed = 2; // Speed of moving towards the worm
+        const newX = birdRect.left + speed * Math.cos(angle);
+        const newY = birdRect.top + speed * Math.sin(angle);
+
+        bird.style.left = `${newX}px`;
+        bird.style.top = `${newY}px`;
+
+        setTimeout(() => birdMoveToWorm(bird, worm, playArea), 100);
+    }
 }
 
 function birdAscendAndFlight(bird, playArea) {
