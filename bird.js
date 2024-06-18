@@ -183,7 +183,7 @@ function birdWalkingPattern(bird, playArea) {
                         const currentY = parseFloat(bird.style.top);
 
                         // Smaller, hop-like steps
-                        const distance = Math.random() * 5 + 2; // Shorter distance for hop-like movement
+                        const distance = Math.random() * 10 + 5; // Increase the distance a bit
                         const angle = Math.random() * Math.PI * 2; // Random angle
 
                         const newX = currentX + distance * Math.cos(angle);
