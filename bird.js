@@ -23,7 +23,7 @@ function addBird(x, y, playArea) {
 }
 
 function birdFlightPattern(bird, playArea, isErratic) {
-    console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
+    console.log(`Entering birdFlightPattern for bird at: ${bird.style.left} ${bird.style.top}, isErratic: ${isErratic}`);
 
     bird.state = 'flying';
     const flightTime = Math.random() * 10000 + 5000; // 5-15 seconds
@@ -32,7 +32,7 @@ function birdFlightPattern(bird, playArea, isErratic) {
     const flightInterval = setInterval(() => {
         if (bird.state === 'flying') {
             if (Date.now() - lastDebugTime > 3000) { // Log every 3 seconds
-                console.log('Bird is flying at:', bird.style.left, bird.style.top);
+                console.log(`Bird is flying at: ${bird.style.left} ${bird.style.top}`);
                 lastDebugTime = Date.now();
             }
 
@@ -62,9 +62,16 @@ function birdFlightPattern(bird, playArea, isErratic) {
                     // Butterfly eaten
                     butterfly.remove();
                     bird.hunger = Math.min(bird.hunger + 5, 100); // Increase hunger by a small amount
-                    console.log('Bird ate a butterfly. Hunger:', bird.hunger);
+                    console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
                 }
             });
+
+            // Boundary check
+            if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
+                console.log(`Bird hit the boundary at: ${newX} ${newY}`);
+                clearInterval(flightInterval);
+                birdLandingDecision(bird, playArea);
+            }
         }
     }, 500);
 
@@ -79,7 +86,7 @@ function birdFlightPattern(bird, playArea, isErratic) {
 }
 
 function birdLandingDecision(bird, playArea) {
-    console.log('Bird deciding where to land. Hunger:', bird.hunger);
+    console.log(`Bird deciding where to land. Hunger: ${bird.hunger}`);
 
     if (bird.hunger <= 60) {
         console.log('Bird hunger below 60, landing on the ground.');
@@ -142,14 +149,14 @@ function birdDescendToGround(bird, playArea) {
 }
 
 function birdLandOnTree(bird, treeX, treeY, playArea) {
-    console.log('Bird landing on a tree.');
+    console.log(`Bird landing on a tree at: ${treeX}, ${treeY}`);
 
     bird.state = 'landing';
     setTimeout(() => {
         bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
         bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
 
-        console.log('Bird landed on tree at', bird.style.left, bird.style.top);
+        console.log(`Bird landed on tree at ${bird.style.left} ${bird.style.top}`);
 
         const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
         setTimeout(() => {
@@ -273,7 +280,7 @@ function birdMoveToWorm(bird, worm, playArea) {
             // Eat the worm
             worm.remove();
             bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
-            console.log('Bird ate a worm. Hunger:', bird.hunger);
+            console.log(`Bird ate a worm. Hunger: ${bird.hunger}`);
 
             // Check for nearby worms
             const nearbyWorms = document.querySelectorAll('.worm');
