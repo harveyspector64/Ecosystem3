@@ -263,13 +263,29 @@ function birdMoveToWorm(bird, worm, playArea) {
 
         const newBirdRect = bird.getBoundingClientRect();
 
-        if (Math.abs(newBirdRect.left - wormRect.left) < 5 && Math.abs(newBirdRect.top - wormRect.top) < 5) {
+        // Check if bird is close enough to worm to eat it
+        if (Math.abs(newBirdRect.left - wormRect.left) < 10 && Math.abs(newBirdRect.top - wormRect.top) < 10) {
             clearInterval(moveInterval);
             // Eat the worm
             worm.remove();
             bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
             console.log('Bird ate a worm. Hunger:', bird.hunger);
-            birdAscendAndFlight(bird, playArea);
+
+            // Check for nearby worms
+            const nearbyWorms = document.querySelectorAll('.worm');
+            let foundWorm = false;
+            nearbyWorms.forEach(otherWorm => {
+                const otherWormRect = otherWorm.getBoundingClientRect();
+                const distance = Math.sqrt((newBirdRect.left - otherWormRect.left) ** 2 + (newBirdRect.top - otherWormRect.top) ** 2);
+                if (distance < 100) { // If another worm is within 100 pixels
+                    foundWorm = true;
+                    birdMoveToWorm(bird, otherWorm, playArea);
+                }
+            });
+
+            if (!foundWorm) {
+                birdAscendAndFlight(bird, playArea);
+            }
         }
     }, 100);
 }
