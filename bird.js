@@ -64,12 +64,6 @@ function birdFlightPattern(bird, playArea) {
                     console.log('Bird ate a butterfly. Hunger:', bird.hunger);
                 }
             });
-
-            if (bird.hunger <= 60) {
-                clearInterval(flightInterval);
-                console.log('Bird hunger below 60, preparing to land.');
-                birdLandingDecision(bird, playArea);
-            }
         }
     }, 500);
 
