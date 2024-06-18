@@ -53,6 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Define addWorm function
+    function addWorm(x, y) {
+        const wormElement = document.createElement('div');
+        wormElement.textContent = EMOJIS.WORM;
+        wormElement.classList.add('emoji', 'worm');
+        wormElement.style.position = 'absolute';
+        wormElement.style.left = `${x}px`;
+        wormElement.style.top = `${y}px`;
+        playArea.appendChild(wormElement);
+    }
+
     // Handle drag over event in play area
     playArea.addEventListener('dragover', (e) => {
         e.preventDefault();
