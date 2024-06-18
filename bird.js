@@ -17,11 +17,11 @@ function addBird(x, y, playArea) {
         birdElement.hunger = 100; // Initialize hunger
         console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
 
-        birdFlightPattern(birdElement, playArea);
+        birdFlightPattern(birdElement, playArea, false);
     }, delay);
 }
 
-function birdFlightPattern(bird, playArea) {
+function birdFlightPattern(bird, playArea, isErratic) {
     console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
 
     bird.state = 'flying';
@@ -38,11 +38,11 @@ function birdFlightPattern(bird, playArea) {
             const currentX = parseFloat(bird.style.left);
             const currentY = parseFloat(bird.style.top);
 
-            // Soaring circular pattern
-            const angle = (Date.now() / 1000) % (2 * Math.PI); // Create a circular motion
-            const radius = 50; // Radius of the circular path
-            const newX = currentX + radius * Math.cos(angle);
-            const newY = currentY + radius * Math.sin(angle);
+            // Determine flight pattern
+            const angle = Math.random() * Math.PI * 2; // Random angle
+            const distance = isErratic ? (Math.random() * 40 + 60) : (Math.random() * 20 + 30); // Erratic vs normal distance
+            const newX = currentX + distance * Math.cos(angle);
+            const newY = currentY + distance * Math.sin(angle);
 
             bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
             bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
@@ -60,7 +60,7 @@ function birdFlightPattern(bird, playArea) {
                     birdRect.bottom > butterflyRect.top) {
                     // Butterfly eaten
                     butterfly.remove();
-                    bird.hunger = Math.min(bird.hunger + 2, 100); // Increase hunger by a small amount
+                    bird.hunger = Math.min(bird.hunger + 5, 100); // Increase hunger by a small amount
                     console.log('Bird ate a butterfly. Hunger:', bird.hunger);
                 }
             });
@@ -153,7 +153,7 @@ function birdLandOnTree(bird, treeX, treeY, playArea) {
         const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
         setTimeout(() => {
             console.log('Bird has roosted. Resuming flight.');
-            birdFlightPattern(bird, playArea);
+            birdFlightPattern(bird, playArea, false);
         }, roostTime);
     }, 500); // Short delay to simulate smooth landing
 }
@@ -204,7 +204,7 @@ function birdWalkingPattern(bird, playArea) {
                                 bird.style.left = `${wormRect.left}px`;
                                 bird.style.top = `${wormRect.top}px`;
                                 worm.remove();
-                                bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
+                                bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
                                 console.log('Bird ate a worm. Hunger:', bird.hunger);
                                 birdAscendAndFlight(bird, playArea);
                             }
@@ -241,7 +241,7 @@ function birdAscendAndFlight(bird, playArea) {
     bird.style.top = `${parseFloat(bird.style.top) - 50}px`; // Ascend a bit to simulate takeoff
     setTimeout(() => {
         bird.state = 'flying';
-        birdFlightPattern(bird, playArea);
+        birdFlightPattern(bird, playArea, bird.hunger <= 60); // Check if the flight should be erratic
     }, 1000); // Longer delay to simulate smooth takeoff
 }
 
