@@ -239,31 +239,39 @@ function birdWalkingPattern(bird, playArea) {
 }
 
 function birdMoveToWorm(bird, worm, playArea) {
+    console.log('Bird moving to worm.');
+
     bird.state = 'movingToWorm';
     const wormRect = worm.getBoundingClientRect();
     const birdRect = bird.getBoundingClientRect();
 
     const dx = wormRect.left - birdRect.left;
     const dy = wormRect.top - birdRect.top;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx);
 
-    if (distance < 10) {
-        // Eat the worm
-        worm.remove();
-        bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
-        console.log('Bird ate a worm. Hunger:', bird.hunger);
-        birdAscendAndFlight(bird, playArea);
-    } else {
-        const angle = Math.atan2(dy, dx);
-        const speed = 2; // Speed of moving towards the worm
-        const newX = birdRect.left + speed * Math.cos(angle);
-        const newY = birdRect.top + speed * Math.sin(angle);
+    const speed = 2; // Speed of moving towards the worm
 
-        bird.style.left = `${newX}px`;
-        bird.style.top = `${newY}px`;
+    const moveInterval = setInterval(() => {
+        const currentX = parseFloat(bird.style.left);
+        const currentY = parseFloat(bird.style.top);
 
-        setTimeout(() => birdMoveToWorm(bird, worm, playArea), 100);
-    }
+        const newX = currentX + speed * Math.cos(angle);
+        const newY = currentY + speed * Math.sin(angle);
+
+        bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
+        bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
+
+        const newBirdRect = bird.getBoundingClientRect();
+
+        if (Math.abs(newBirdRect.left - wormRect.left) < 5 && Math.abs(newBirdRect.top - wormRect.top) < 5) {
+            clearInterval(moveInterval);
+            // Eat the worm
+            worm.remove();
+            bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
+            console.log('Bird ate a worm. Hunger:', bird.hunger);
+            birdAscendAndFlight(bird, playArea);
+        }
+    }, 100);
 }
 
 function birdAscendAndFlight(bird, playArea) {
