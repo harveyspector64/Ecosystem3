@@ -1,3 +1,18 @@
+function addBird(x, y, playArea) {
+    const birdElement = document.createElement('div');
+    birdElement.textContent = EMOJIS.BIRD;
+    birdElement.classList.add('emoji', 'bird');
+    birdElement.style.position = 'absolute';
+    birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
+    birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
+    playArea.appendChild(birdElement);
+
+    birdElement.hunger = 100; // Initialize hunger
+    console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
+
+    birdFlightPattern(birdElement, x, y, false, playArea);
+}
+
 function birdFlightPattern(bird, targetX, targetY, isHunting, playArea) {
     console.log('Entering birdFlightPattern for bird at:', bird.style.left, bird.style.top);
 
@@ -207,4 +222,18 @@ function getNearestTree(targetX, targetY) {
     });
 
     return nearestTree;
+}
+
+function addWormToPanel() {
+    const wormElement = document.createElement('div');
+    wormElement.id = 'worm';
+    wormElement.classList.add('emoji');
+    wormElement.textContent = EMOJIS.WORM;
+    wormElement.setAttribute('draggable', 'true');
+    wormElement.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', EMOJIS.WORM);
+    });
+
+    const sidebar = document.getElementById('sidebar');
+    sidebar.appendChild(wormElement);
 }
