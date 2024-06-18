@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wormElement.addEventListener('dragstart', (e) => {
             console.log('Drag start: 🐛');
             e.dataTransfer.setData('text/plain', EMOJIS.WORM);
+            draggedEmoji = EMOJIS.WORM;
         });
 
         sidebar.appendChild(wormElement);
@@ -66,6 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Drop: ${draggedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
+        } else {
+            console.log('No dragged emoji');
         }
     });
 
@@ -78,6 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Touch end: ${draggedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
+        } else {
+            console.log('No dragged emoji');
         }
     });
 
