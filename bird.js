@@ -12,6 +12,7 @@ function addBird(x, y, playArea) {
         birdElement.style.position = 'absolute';
         birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
         birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
+        birdElement.style.zIndex = '1'; // Ensure bird is above other elements
         playArea.appendChild(birdElement);
 
         birdElement.hunger = 100; // Initialize hunger
@@ -212,7 +213,7 @@ function birdWalkingPattern(bird, playArea) {
                     } else {
                         clearInterval(stepInterval);
                         if (bird.state === 'walking') {
-                            const pauseDuration = Math.random() * 2000 + 1000; // Random pause between 1-3 seconds
+                            const pauseDuration = Math.random() * 5000 + 2000; // Random pause between 2-7 seconds
                             bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)'; // Simulate looking both ways
                             console.log(`Bird pausing for ${pauseDuration}ms`);
                             setTimeout(() => {
@@ -270,6 +271,7 @@ function addWormToPanel() {
     wormElement.classList.add('emoji');
     wormElement.textContent = EMOJIS.WORM;
     wormElement.setAttribute('draggable', 'true');
+    wormElement.style.zIndex = '0'; // Ensure worm is below other elements
     wormElement.addEventListener('dragstart', (e) => {
         const draggedElement = e.target;
         if (!draggedElement.classList.contains('emoji')) return;
