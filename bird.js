@@ -1,16 +1,24 @@
+const playArea = document.getElementById('play-area');
+let firstBirdLanded = false;
+
 function addBird(x, y, playArea) {
-    const birdElement = document.createElement('div');
-    birdElement.textContent = EMOJIS.BIRD;
-    birdElement.classList.add('emoji', 'bird');
-    birdElement.style.position = 'absolute';
-    birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
-    birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
-    playArea.appendChild(birdElement);
+    const delay = Math.random() * 8000 + 4000; // 4-12 seconds delay
+    console.log(`Spawning bird after delay: ${delay}`);
+    
+    setTimeout(() => {
+        const birdElement = document.createElement('div');
+        birdElement.textContent = EMOJIS.BIRD;
+        birdElement.classList.add('emoji', 'bird');
+        birdElement.style.position = 'absolute';
+        birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
+        birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
+        playArea.appendChild(birdElement);
 
-    birdElement.hunger = 100; // Initialize hunger
-    console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
+        birdElement.hunger = 100; // Initialize hunger
+        console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
 
-    birdFlightPattern(birdElement, x, y, false, playArea);
+        birdFlightPattern(birdElement, x, y, false, playArea);
+    }, delay);
 }
 
 function birdFlightPattern(bird, targetX, targetY, isHunting, playArea) {
@@ -52,7 +60,7 @@ function birdFlightPattern(bird, targetX, targetY, isHunting, playArea) {
                     birdRect.bottom > butterflyRect.top) {
                     // Butterfly eaten
                     butterfly.remove();
-                    bird.hunger = Math.min(bird.hunger + 5, 100); // Increase hunger by a small amount
+                    bird.hunger = Math.min(bird.hunger + 2, 100); // Increase hunger by a small amount
                     console.log('Bird ate a butterfly. Hunger:', bird.hunger);
                 }
             });
