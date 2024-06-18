@@ -131,8 +131,8 @@ function birdDescendToGround(bird, playArea) {
     console.log('Bird descending to land on the ground.');
 
     bird.state = 'descending';
-    bird.style.transition = 'top 0.5s, left 0.5s';
-    bird.style.top = `${parseFloat(bird.style.top) + 20}px`; // Descend a bit to simulate landing
+    bird.style.transition = 'top 1s, left 1s';
+    bird.style.top = `${parseFloat(bird.style.top) + 50}px`; // Descend a bit to simulate landing
     setTimeout(() => {
         bird.state = 'walking';
         bird.walkCount = 0; // Reset walk count
@@ -142,7 +142,7 @@ function birdDescendToGround(bird, playArea) {
             firstBirdLanded = true;
             addWormToPanel(); // Add worm emoji to panel
         }
-    }, 500); // Short delay to simulate smooth landing
+    }, 1000); // Longer delay to simulate smooth landing
 }
 
 function birdLandOnTree(bird, treeX, treeY, playArea) {
