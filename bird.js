@@ -182,7 +182,8 @@ function birdWalkingPattern(bird, playArea) {
             bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`; // Confining to map
             bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`; // Confining to map
 
-            bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)'; // Simulate looking both ways
+            // Simulate looking both ways with pauses and emoji flip
+            bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
 
             console.log('Bird walked to', bird.style.left, bird.style.top);
 
