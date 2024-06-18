@@ -242,12 +242,12 @@ function birdAscendAndFlight(bird, playArea) {
     console.log('Bird ascending to flight.');
 
     bird.state = 'ascending';
-    bird.style.transition = 'top 0.5s, left 0.5s';
-    bird.style.top = `${parseFloat(bird.style.top) - 20}px`; // Ascend a bit to simulate takeoff
+    bird.style.transition = 'top 1s, left 1s';
+    bird.style.top = `${parseFloat(bird.style.top) - 50}px`; // Ascend a bit to simulate takeoff
     setTimeout(() => {
         bird.state = 'flying';
         birdFlightPattern(bird, playArea);
-    }, 500); // Short delay to simulate smooth takeoff
+    }, 1000); // Longer delay to simulate smooth takeoff
 }
 
 function getNearestTree(bird) {
