@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
     let draggedEmoji = null;
+    let firstBirdLanded = false;
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
@@ -14,31 +15,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Use event delegation for dragstart event on sidebar
+    // Use a single dragstart event listener on the sidebar container
     sidebar.addEventListener('dragstart', (e) => {
         const draggedElement = e.target;
-        if (!draggedElement.classList.contains('emoji')) return; // Ignore non-emoji elements
+        if (!draggedElement.classList.contains('emoji')) return;
 
-        draggedEmoji = draggedElement.textContent;  // Get emoji directly from element
+        draggedEmoji = draggedElement.textContent;
         console.log(`Drag start: ${draggedEmoji}`);
     });
 
     // Ensure the worm is correctly added to the sidebar with event listeners
-    function addWormToPanel() {
-        const wormElement = document.createElement('div');
-        wormElement.id = 'worm';
-        wormElement.classList.add('emoji');
-        wormElement.textContent = EMOJIS.WORM;
-        wormElement.setAttribute('draggable', 'true');
-        sidebar.appendChild(wormElement);
-        console.log('Worm added to sidebar');
+    function addEmojiToPanel(emoji, id) {
+        const emojiElement = document.createElement('div');
+        emojiElement.id = id;
+        emojiElement.classList.add('emoji');
+        emojiElement.textContent = emoji;
+        emojiElement.setAttribute('draggable', 'true');
+
+        // Attach the same dragstart listener
+        emojiElement.addEventListener('dragstart', (e) => {
+            const draggedElement = e.target;
+            if (!draggedElement.classList.contains('emoji')) return;
+
+            draggedEmoji = draggedElement.textContent;
+            console.log(`Drag start: ${draggedEmoji}`);
+        });
+
+        sidebar.appendChild(emojiElement);
+        console.log(`${id} added to sidebar`);
     }
 
     // Call this function when the first bird lands
     function addWormToPanelWhenFirstBirdLands() {
         if (!firstBirdLanded) {
             firstBirdLanded = true;
-            addWormToPanel();
+            addEmojiToPanel(EMOJIS.WORM, 'worm');
         }
     }
 
@@ -55,7 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const x = e.clientX - playArea.offsetLeft;
             const y = e.clientY - playArea.offsetTop;
             console.log(`Drop: ${draggedEmoji} at (${x}, ${y})`);
-            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
+            if (draggedEmoji === EMOJIS.WORM) {
+                addWorm(x, y);
+            } else {
+                addEmojiToPlayArea(draggedEmoji, x, y, playArea);
+            }
             draggedEmoji = null;
         } else {
             console.log('No dragged emoji');
@@ -77,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function addEmojiToPlayArea(emoji, x, y, playArea) {
-        console.log(`Adding ${emoji} to play area at (${x}, ${y})`); // Added log
         const emojiElement = document.createElement('div');
         emojiElement.textContent = emoji;
 
@@ -99,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emojiElement.style.top = `${y}px`;
         playArea.appendChild(emojiElement);
 
-        console.log(`Added ${emoji} to play area at (${x}, ${y})`); // Added log
+        console.log(`Added ${emoji} to play area at (${x}, ${y})`);
 
         // Additional logic for specific emojis
         if (emoji === EMOJIS.BUSH) {
@@ -200,8 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
-    // Add worm to panel when first bird lands
-    playArea.addEventListener('birdFirstLand', () => {
-        addWormToPanelWhenFirstBirdLands();
-    });
+    // Expose addWormToPanel globally
+    window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
 });
