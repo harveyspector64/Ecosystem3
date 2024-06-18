@@ -38,16 +38,16 @@ function birdFlightPattern(bird, targetX, targetY, isHunting, playArea) {
             const currentX = parseFloat(bird.style.left);
             const currentY = parseFloat(bird.style.top);
 
-            // Soaring circular pattern
-            const angle = (Date.now() / 1000) % (2 * Math.PI); // Create a circular motion
-            const radius = 50; // Radius of the circular path
+            // Smooth spiraling flight pattern
+            const angle = (Date.now() / 2000) % (2 * Math.PI); // Create a slower circular motion
+            const radius = 80; // Larger radius for smoother flight
             const newX = currentX + radius * Math.cos(angle);
             const newY = currentY + radius * Math.sin(angle);
 
             bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
             bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-            bird.hunger -= 0.5; // Decrease hunger slower
+            bird.hunger -= 0.3; // Decrease hunger slower
 
             // Check for butterfly collisions
             const butterflies = document.querySelectorAll('.butterfly');
@@ -71,7 +71,7 @@ function birdFlightPattern(bird, targetX, targetY, isHunting, playArea) {
                 birdFlightPattern(bird, targetX, targetY, true, playArea);
             }
         }
-    }, 500);
+    }, 1000);
 
     // Set timeout for changing state after flight time
     setTimeout(() => {
@@ -117,13 +117,13 @@ function birdFlyToTree(bird, targetX, targetY, playArea) {
                 birdLandOnTree(bird, treeX, treeY, playArea);
             } else {
                 const angle = Math.atan2(dy, dx);
-                const speed = 5; // Speed of flying towards the tree
+                const speed = 2; // Slower speed of flying towards the tree
                 const newX = currentX + speed * Math.cos(angle);
                 const newY = currentY + speed * Math.sin(angle);
                 bird.style.left = `${newX}px`;
                 bird.style.top = `${newY}px`;
             }
-        }, 100);
+        }, 200);
     }
 }
 
@@ -167,55 +167,77 @@ function birdWalkingPattern(bird, playArea) {
     console.log('Bird walking on the ground.');
 
     let walkCount = 0; // Counter for walks
-    const maxWalks = 2 + Math.floor(Math.random() * 2); // 2-3 walks
+    const maxWalks = 2 + Math.floor(Math.random() * 5) + 2; // 2-6 walk/pause cycles
 
     const walkInterval = setInterval(() => {
         if (bird.state === 'walking') {
             walkCount++;
-            const currentX = parseFloat(bird.style.left);
-            const currentY = parseFloat(bird.style.top);
+            const stepCount = 5 + Math.floor(Math.random() * 5); // 5-9 steps per pattern
 
-            // Smaller, hop-like steps
-            const distance = Math.random() * 5 + 2; // Shorter distance for hop-like movement
-            const angle = Math.random() * Math.PI * 2; // Random angle
+            const performSteps = () => {
+                let stepIndex = 0;
+                const stepInterval = setInterval(() => {
+                    if (stepIndex < stepCount && bird.state === 'walking') {
+                        stepIndex++;
+                        const currentX = parseFloat(bird.style.left);
+                        const currentY = parseFloat(bird.style.top);
 
-            const newX = currentX + distance * Math.cos(angle);
-            const newY = currentY + distance * Math.sin(angle);
+                        // Smaller, hop-like steps
+                        const distance = Math.random() * 5 + 2; // Shorter distance for hop-like movement
+                        const angle = Math.random() * Math.PI * 2; // Random angle
 
-            bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`; // Confining to map
-            bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`; // Confining to map
+                        const newX = currentX + distance * Math.cos(angle);
+                        const newY = currentY + distance * Math.sin(angle);
 
-            // Simulate looking both ways with pauses and emoji flip
-            bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
-            bird.style.transition = 'top 0.3s, left 0.3s'; // Smooth transition for hops
+                        bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`; // Confining to map
+                        bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`; // Confining to map
 
-            console.log('Bird walked to', bird.style.left, bird.style.top);
+                        // Smooth transition for hops
+                        bird.style.transition = 'top 0.3s, left 0.3s';
 
-            // Check for nearby worms
-            const worms = document.querySelectorAll('.worm');
-            worms.forEach(worm => {
-                const wormRect = worm.getBoundingClientRect();
-                const birdRect = bird.getBoundingClientRect();
-                const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
-                if (distance < 50) { // If within 50 pixels
-                    clearInterval(walkInterval);
-                    bird.style.left = `${wormRect.left}px`;
-                    bird.style.top = `${wormRect.top}px`;
-                    worm.remove();
-                    bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
-                    console.log('Bird ate a worm. Hunger:', bird.hunger);
-                    birdFlightPattern(bird, currentX, currentY, true, playArea);
-                }
-            });
+                        console.log('Bird walked to', bird.style.left, bird.style.top);
 
-            if (walkCount >= maxWalks) {
-                clearInterval(walkInterval);
-                bird.state = 'flying';
-                console.log('Bird finished walking. Resuming flight.');
-                birdFlightPattern(bird, currentX, currentY, true, playArea);
-            }
+                        // Check for nearby worms
+                        const worms = document.querySelectorAll('.worm');
+                        worms.forEach(worm => {
+                            const wormRect = worm.getBoundingClientRect();
+                            const birdRect = bird.getBoundingClientRect();
+                            const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
+                            if (distance < 50) { // If within 50 pixels
+                                clearInterval(stepInterval);
+                                clearInterval(walkInterval);
+                                bird.style.left = `${wormRect.left}px`;
+                                bird.style.top = `${wormRect.top}px`;
+                                worm.remove();
+                                bird.hunger = Math.min(bird.hunger + 40, 100); // Increase hunger
+                                console.log('Bird ate a worm. Hunger:', bird.hunger);
+                                birdFlightPattern(bird, currentX, currentY, true, playArea);
+                            }
+                        });
+                    } else {
+                        clearInterval(stepInterval);
+                        if (bird.state === 'walking') {
+                            const pauseDuration = Math.random() * 2000 + 1000; // Random pause between 1-3 seconds
+                            bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)'; // Simulate looking both ways
+                            console.log(`Bird pausing for ${pauseDuration}ms`);
+                            setTimeout(() => {
+                                if (walkCount < maxWalks && bird.state === 'walking') {
+                                    performSteps();
+                                } else {
+                                    clearInterval(walkInterval);
+                                    bird.state = 'flying';
+                                    console.log('Bird finished walking. Resuming flight.');
+                                    birdFlightPattern(bird, currentX, currentY, true, playArea);
+                                }
+                            }, pauseDuration);
+                        }
+                    }
+                }, 500); // Step interval, slower speed
+            };
+
+            performSteps();
         }
-    }, 1000); // Interval for walking pattern, slower speed
+    }, 1000); // Initial delay before starting the walking pattern
 }
 
 function getNearestTree(targetX, targetY) {
