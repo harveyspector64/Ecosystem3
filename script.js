@@ -27,6 +27,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Ensure the worm is correctly added to the sidebar with event listeners
+    function addWormToPanel() {
+        const wormElement = document.createElement('div');
+        wormElement.id = 'worm';
+        wormElement.classList.add('emoji');
+        wormElement.textContent = EMOJIS.WORM;
+        wormElement.setAttribute('draggable', 'true');
+        wormElement.addEventListener('dragstart', (e) => {
+            console.log('Drag start: 🐛');
+            e.dataTransfer.setData('text/plain', EMOJIS.WORM);
+        });
+
+        sidebar.appendChild(wormElement);
+        console.log('Worm added to sidebar');
+    }
+
+    // Call this function when the first bird lands
+    function addWormToPanelWhenFirstBirdLands() {
+        if (!firstBirdLanded) {
+            firstBirdLanded = true;
+            addWormToPanel();
+        }
+    }
+
     // Handle drag over event in play area
     playArea.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -180,28 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
-    // Ensure the worm is correctly added to the sidebar with event listeners
-    function addWormToPanel() {
-        const wormElement = document.createElement('div');
-        wormElement.id = 'worm';
-        wormElement.classList.add('emoji');
-        wormElement.textContent = EMOJIS.WORM;
-        wormElement.setAttribute('draggable', 'true');
-        wormElement.addEventListener('dragstart', (e) => {
-            console.log('Drag start: 🐛');
-            e.dataTransfer.setData('text/plain', EMOJIS.WORM);
-        });
-
-        const sidebar = document.getElementById('sidebar');
-        sidebar.appendChild(wormElement);
-        console.log('Worm added to sidebar');
-    }
-
-    // Call this function when the first bird lands
-    function addWormToPanelWhenFirstBirdLands() {
-        if (!firstBirdLanded) {
-            firstBirdLanded = true;
-            addWormToPanel();
-        }
-    }
+    // Add worm to panel when first bird lands
+    playArea.addEventListener('birdFirstLand', () => {
+        addWormToPanelWhenFirstBirdLands();
+    });
 });
