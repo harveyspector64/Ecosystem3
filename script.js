@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
     let draggedEmoji = null;
-    let firstBirdLanded = false;
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
@@ -175,3 +174,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function addWormToPanel() {
+    const wormElement = document.createElement('div');
+    wormElement.id = 'worm';
+    wormElement.classList.add('emoji');
+    wormElement.textContent = EMOJIS.WORM;
+    wormElement.setAttribute('draggable', 'true');
+    wormElement.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', EMOJIS.WORM);
+    });
+
+    const sidebar = document.getElementById('sidebar');
+    sidebar.appendChild(wormElement);
+}
