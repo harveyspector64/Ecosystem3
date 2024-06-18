@@ -79,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         emojiElement.style.top = `${y}px`;
         playArea.appendChild(emojiElement);
 
+        console.log(`Added ${emoji} to play area at (${x}, ${y})`);
+
         // Additional logic for specific emojis
         if (emoji === EMOJIS.BUSH) {
             addButterflies(x, y, playArea);
