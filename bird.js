@@ -134,7 +134,8 @@ function birdDescendToGround(bird, playArea) {
 
         if (!firstBirdLanded) {
             firstBirdLanded = true;
-            addWormToPanel(); // Add worm emoji to panel
+            // Call addWormToPanel() from script.js
+            window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
 }
@@ -270,7 +271,11 @@ function addWormToPanel() {
     wormElement.textContent = EMOJIS.WORM;
     wormElement.setAttribute('draggable', 'true');
     wormElement.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', EMOJIS.WORM);
+        const draggedElement = e.target;
+        if (!draggedElement.classList.contains('emoji')) return;
+
+        draggedEmoji = draggedElement.textContent;
+        console.log(`Drag start: ${draggedEmoji}`);
     });
 
     const sidebar = document.getElementById('sidebar');
