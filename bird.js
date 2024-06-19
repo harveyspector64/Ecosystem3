@@ -283,7 +283,7 @@ function birdMoveToWorm(bird, worm, playArea) {
             return;
         }
 
-        if (moveTime >= 15000) { // 15 seconds timeout
+        if (moveTime >= 20000) { // 15 seconds timeout
             clearInterval(moveInterval);
             console.log('Bird took too long to reach the worm, resuming flight.');
             birdAscendAndFlight(bird, playArea);
