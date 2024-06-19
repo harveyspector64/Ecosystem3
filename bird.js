@@ -1,3 +1,4 @@
+// Define bird states
 const birdStates = {
     PERCHING: 'perching',
     FLYING: 'flying',
@@ -98,7 +99,7 @@ function birdLandingDecision(bird, playArea) {
         console.log('Bird hunger between 30 and 60, actively searching for food.');
         birdFlightPattern(bird, playArea, true);
     } else { 
-        console.log('Bird hunger above 60, flying to a tree to perch.');
+        console.log('Bird hunger above 70, flying to a tree to perch.');
         birdFlyToTree(bird, playArea);
     }
 }
@@ -198,31 +199,17 @@ function birdWalkingPattern(bird, playArea) {
             const stepInterval = setInterval(() => {
                 if (stepIndex < stepCount && bird.currentState === birdStates.WALKING) {
                     stepIndex++;
-                    const currentX = parseFloat(bird.style.left);
-                    const currentY = parseFloat(bird.style.top);
+                    // ... (your movement logic for a single step) 
 
-                    const distance = Math.random() * 5 + 2;
-                    const angle = Math.random() * Math.PI * 2;
+                    detectWorms(bird, playArea); // Detect worms during each step
 
-                    const newX = currentX + distance * Math.cos(angle);
-                    const newY = currentY + distance * Math.sin(angle);
-
-                    bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
-                    bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
-
-                    bird.style.transition = 'top 0.3s, left 0.3s';
-
-                    console.log('Bird walked to', bird.style.left, bird.style.top);
-
-                    detectWorms(bird, playArea);
                 } else {
                     clearInterval(stepInterval);
                     if (bird.currentState === birdStates.WALKING) {
-                        const pauseDuration = Math.random() * 5000 + 2000;
-                        bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
-                        console.log(`Bird pausing for ${pauseDuration}ms`);
+                        // ... (your pause logic)
+
                         setTimeout(() => {
-                            if (walkCount < maxWalks && bird.currentState === birdStates.WALKING) {
+                            if (walkCount < maxWalks) {  // Check walkCount before ascending 
                                 performSteps();
                             } else {
                                 clearInterval(walkInterval);
