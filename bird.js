@@ -8,7 +8,8 @@ const birdStates = {
     MOVING_TO_WORM: 'movingToWorm',
     EATING: 'eating',
     DESCENDING: 'descending',
-    LANDING: 'landing'
+    LANDING: 'landing',
+    ASCENDING: 'ascending'
 };
 
 function setState(bird, newState) {
@@ -283,7 +284,7 @@ function birdMoveToWorm(bird, worm, playArea) {
             return;
         }
 
-        if (moveTime >= 20000) { // 15 seconds timeout
+        if (moveTime >= 15000) { // 15 seconds timeout
             clearInterval(moveInterval);
             console.log('Bird took too long to reach the worm, resuming flight.');
             birdAscendAndFlight(bird, playArea);
@@ -323,12 +324,17 @@ function eatWorm(bird, worm) {
     setState(bird, birdStates.EATING);
     console.log(`Bird ate a worm. Hunger: ${bird.hunger}`);
 
-    worm.remove();
-    bird.hunger = Math.min(bird.hunger + 20, 100);
-
     setTimeout(() => {
-        detectWorms(bird, playArea);
-    }, 1000);
+        worm.remove();
+        bird.hunger = Math.min(bird.hunger + 20, 100);
+
+        if (bird.hunger >= 60) {
+            birdAscendAndFlight(bird, playArea);
+        } else {
+            setState(bird, birdStates.WALKING);
+            birdWalkingPattern(bird, playArea);
+        }
+    }, 200); // Short delay for smoother animation
 }
 
 function detectWorms(bird, playArea) {
@@ -361,12 +367,14 @@ function detectButterflies(bird, playArea) {
         butterflies.forEach(butterfly => {
             const butterflyRect = butterfly.getBoundingClientRect();
             const birdRect = bird.getBoundingClientRect();
-            const distance = Math.sqrt((birdRect.left - butterflyRect.left) ** 2 + (birdRect.top - butterflyRect.top) ** 2);
 
-            if (distance < 10) {
-                butterfly.remove();
-                bird.hunger = Math.min(bird.hunger + 5, 100);
-                console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
+            if (birdRect.left < butterflyRect.right &&
+                birdRect.right > butterflyRect.left &&
+                birdRect.top < butterflyRect.bottom &&
+                birdRect.bottom > butterflyRect.top) {
+                    butterfly.remove();
+                    bird.hunger = Math.min(bird.hunger + 5, 100);
+                    console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
             }
         });
     }
@@ -422,4 +430,4 @@ function addWormToPanel() {
 
     const sidebar = document.getElementById('sidebar');
     sidebar.appendChild(wormElement);
-}
+} 
