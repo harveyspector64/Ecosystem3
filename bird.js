@@ -1,19 +1,42 @@
+const playArea = document.getElementById('play-area');
+let firstBirdLanded = false;
+
 const birdStates = {
     PERCHING: 'perching',
     FLYING: 'flying',
     WALKING: 'walking',
     MOVING_TO_WORM: 'movingToWorm',
     EATING: 'eating',
-    ASCENDING: 'ascending',
     DESCENDING: 'descending',
-    LANDING: 'landing'
+    LANDING: 'landing',
+    ASCENDING: 'ascending'
 };
-
-let firstBirdLanded = false; // Ensure this is defined
 
 function setState(bird, newState) {
     console.log(`Bird state transition: ${bird.currentState} -> ${newState}`);
     bird.currentState = newState;
+}
+
+function addBird(x, y, playArea) {
+    const delay = Math.random() * 8000 + 4000; // 4-12 seconds delay
+    console.log(`Spawning bird after delay: ${delay}`);
+    
+    setTimeout(() => {
+        const birdElement = document.createElement('div');
+        birdElement.textContent = EMOJIS.BIRD;
+        birdElement.classList.add('emoji', 'bird');
+        birdElement.style.position = 'absolute';
+        birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
+        birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
+        birdElement.style.zIndex = '1'; // Ensure bird is above other elements
+        playArea.appendChild(birdElement);
+
+        birdElement.hunger = 100; // Initialize hunger
+        setState(birdElement, birdStates.FLYING);
+        console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
+
+        birdFlightPattern(birdElement, playArea, false);
+    }, delay);
 }
 
 function birdFlightPattern(bird, playArea, isErratic) {
@@ -44,8 +67,9 @@ function birdFlightPattern(bird, playArea, isErratic) {
         bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
         bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-        bird.hunger = Math.max(bird.hunger - 0.5, 0); // Constant hunger decrement
+        bird.hunger -= isErratic ? 1 : 0.5;
 
+        detectWorms(bird, playArea);
         detectButterflies(bird, playArea);
 
         if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
@@ -64,6 +88,32 @@ function birdFlightPattern(bird, playArea, isErratic) {
     }, flightTime);
 }
 
+function birdLandNearWorm(bird, worm, playArea) {
+    console.log('Bird landing near a worm.');
+    setState(bird, birdStates.LANDING);
+
+    const wormRect = worm.getBoundingClientRect();
+
+    const landX = wormRect.left + (Math.random() * 20 - 10);
+    const landY = wormRect.top + (Math.random() * 20 - 10);
+
+    bird.style.left = `${Math.max(0, Math.min(landX, playArea.clientWidth - 20))}px`;
+    bird.style.top = `${Math.max(0, Math.min(landY, playArea.clientHeight - 20))}px`;
+
+    bird.style.transition = 'top 1s, left 1s';
+
+    setTimeout(() => {
+        setState(bird, birdStates.WALKING);
+        bird.walkCount = 0; // Reset walk count
+        birdWalkingPattern(bird, playArea);
+
+        if (!firstBirdLanded) {
+            firstBirdLanded = true;
+            window.addWormToPanel();
+        }
+    }, 1000); // Longer delay to simulate smooth landing
+}
+
 function birdLandingDecision(bird, playArea) {
     console.log(`Bird deciding where to land. Hunger: ${bird.hunger}`);
 
@@ -74,14 +124,13 @@ function birdLandingDecision(bird, playArea) {
         console.log('Bird hunger between 30 and 60, actively searching for food.');
         birdFlightPattern(bird, playArea, true);
     } else { 
-        console.log('Bird hunger above 60, flying to a tree to perch.');
+        console.log('Bird hunger above 70, flying to a tree to perch.');
         birdFlyToTree(bird, playArea);
     }
 }
 
 function birdFlyToTree(bird, playArea) {
     console.log('Bird flying to tree.');
-
     setState(bird, birdStates.FLYING);
 
     const tree = getNearestTree(bird);
@@ -116,25 +165,6 @@ function birdFlyToTree(bird, playArea) {
     }
 }
 
-function birdLandOnTree(bird, treeX, treeY, playArea) {
-    console.log(`Bird landing on a tree at: ${treeX}, ${treeY}`);
-
-    setState(bird, birdStates.LANDING);
-
-    setTimeout(() => {
-        bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
-        bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
-
-        console.log(`Bird landed on tree at ${bird.style.left} ${bird.style.top}`);
-
-        const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
-        setTimeout(() => {
-            console.log('Bird has roosted. Resuming flight.');
-            birdFlightPattern(bird, playArea, false);
-        }, roostTime);
-    }, 500); // Short delay to simulate smooth landing
-}
-
 function birdDescendToGround(bird, playArea) {
     console.log('Bird descending to land on the ground.');
 
@@ -152,6 +182,25 @@ function birdDescendToGround(bird, playArea) {
             window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
+}
+
+function birdLandOnTree(bird, treeX, treeY, playArea) {
+    console.log(`Bird landing on a tree at: ${treeX}, ${treeY}`);
+
+    setState(bird, birdStates.LANDING);
+
+    setTimeout(() => {
+        bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
+        bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
+
+        console.log(`Bird landed on tree at ${bird.style.left} ${bird.style.top}`);
+
+        const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
+        setTimeout(() => {
+            console.log('Bird has roosted. Resuming flight.');
+            birdAscendAndFlight(bird, playArea);
+        }, roostTime);
+    }, 500); // Short delay to simulate smooth landing
 }
 
 function birdWalkingPattern(bird, playArea) {
@@ -174,19 +223,37 @@ function birdWalkingPattern(bird, playArea) {
             const stepInterval = setInterval(() => {
                 if (stepIndex < stepCount && bird.currentState === birdStates.WALKING) {
                     stepIndex++;
-                    // Walking logic...
+                    const currentX = parseFloat(bird.style.left);
+                    const currentY = parseFloat(bird.style.top);
+
+                    const distance = Math.random() * 5 + 2;
+                    const angle = Math.random() * Math.PI * 2;
+
+                    const newX = currentX + distance * Math.cos(angle);
+                    const newY = currentY + distance * Math.sin(angle);
+
+                    bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
+                    bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
+
+                    bird.style.transition = 'top 0.3s, left 0.3s';
+
+                    console.log('Bird walked to', bird.style.left, bird.style.top);
+
                     detectWorms(bird, playArea);
                 } else {
                     clearInterval(stepInterval);
                     if (bird.currentState === birdStates.WALKING) {
+                        const pauseDuration = Math.random() * 5000 + 2000;
+                        bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
+                        console.log(`Bird pausing for ${pauseDuration}ms`);
                         setTimeout(() => {
-                            if (walkCount < maxWalks) {
+                            if (walkCount < maxWalks && bird.currentState === birdStates.WALKING) {
                                 performSteps();
                             } else {
                                 clearInterval(walkInterval);
                                 birdAscendAndFlight(bird, playArea);
                             }
-                        }, 1000); // Pause duration
+                        }, pauseDuration);
                     }
                 }
             }, 500);
@@ -207,11 +274,20 @@ function birdMoveToWorm(bird, worm, playArea) {
     const dy = wormRect.top - birdRect.top;
     const angle = Math.atan2(dy, dx);
 
-    const speed = 2;
+    const speed = 5;
+    let moveTime = 0;
 
     const moveInterval = setInterval(() => {
+        moveTime += 500;
         if (bird.currentState !== birdStates.MOVING_TO_WORM) {
             clearInterval(moveInterval);
+            return;
+        }
+
+        if (moveTime >= 15000) { // 15 seconds timeout
+            clearInterval(moveInterval);
+            console.log('Bird took too long to reach the worm, resuming flight.');
+            birdAscendAndFlight(bird, playArea);
             return;
         }
 
@@ -232,6 +308,14 @@ function birdMoveToWorm(bird, worm, playArea) {
         if (Math.abs(newBirdRect.left - wormRect.left) < 10 && Math.abs(newBirdRect.top - wormRect.top) < 10) {
             clearInterval(moveInterval);
             eatWorm(bird, worm);
+        } else if (moveTime % 3000 === 0) { // Pause every 3 seconds
+            clearInterval(moveInterval);
+            const pauseDuration = Math.random() * 1000 + 500; // 0.5 to 1.5 seconds pause
+            bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
+            console.log(`Bird pausing while moving to worm for ${pauseDuration}ms`);
+            setTimeout(() => {
+                birdMoveToWorm(bird, worm, playArea); // Resume movement
+            }, pauseDuration);
         }
     }, 500);
 }
@@ -244,14 +328,13 @@ function eatWorm(bird, worm) {
         worm.remove();
         bird.hunger = Math.min(bird.hunger + 20, 100);
 
-        // Trigger the next state
         if (bird.hunger >= 60) {
-            birdAscendAndFlight(bird, playArea); // Fly if full
+            birdAscendAndFlight(bird, playArea);
         } else {
-            setState(bird, birdStates.WALKING); // Keep searching if still hungry
+            setState(bird, birdStates.WALKING);
             birdWalkingPattern(bird, playArea);
         }
-    }, 200); // Adjust delay as needed
+    }, 200); // Short delay for smoother animation
 }
 
 function detectWorms(bird, playArea) {
@@ -303,12 +386,12 @@ function birdAscendAndFlight(bird, playArea) {
     setState(bird, birdStates.ASCENDING);
 
     bird.style.transition = 'top 1s, left 1s';
-    bird.style.top = `${parseFloat(bird.style.top) - 50}px`;
+    bird.style.top = `${parseFloat(bird.style.top) - 50}px`; 
     setTimeout(() => {
-        setState(bird, birdStates.FLYING);
+        setState(bird, birdStates.FLYING); 
 
-        birdFlightPattern(bird, playArea, bird.hunger <= 60);
-    }, 1000);
+        birdFlightPattern(bird, playArea, bird.hunger <= 60); 
+    }, 1000); // Ensure this matches the transition duration
 }
 
 function getNearestTree(bird) {
@@ -330,24 +413,21 @@ function getNearestTree(bird) {
     return nearestTree;
 }
 
-function addBird(x, y, playArea) {
-    const delay = Math.random() * 8000 + 4000;
-    console.log(`Spawning bird after delay: ${delay}`);
+function addWormToPanel() {
+    const wormElement = document.createElement('div');
+    wormElement.id = 'worm';
+    wormElement.classList.add('emoji');
+    wormElement.textContent = EMOJIS.WORM;
+    wormElement.setAttribute('draggable', 'true');
+    wormElement.style.zIndex = '0';
+    wormElement.addEventListener('dragstart', (e) => {
+        const draggedElement = e.target;
+        if (!draggedElement.classList.contains('emoji')) return;
 
-    setTimeout(() => {
-        const birdElement = document.createElement('div');
-        birdElement.textContent = EMOJIS.BIRD;
-        birdElement.classList.add('emoji', 'bird');
-        birdElement.style.position = 'absolute';
-        birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
-        birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
-        birdElement.style.zIndex = '1';
-        playArea.appendChild(birdElement);
+        draggedEmoji = draggedElement.textContent;
+        console.log(`Drag start: ${draggedEmoji}`);
+    });
 
-        birdElement.hunger = 100; // Initialize hunger
-        setState(birdElement, birdStates.FLYING);
-        console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
-
-        birdFlightPattern(birdElement, playArea, false);
-    }, delay);
-}
+    const sidebar = document.getElementById('sidebar');
+    sidebar.appendChild(wormElement);
+} 
