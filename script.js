@@ -16,13 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Use a single dragstart event listener on the sidebar container
-    sidebar.addEventListener('dragstart', (e) => {
+    sidebar.addEventListener('dragstart', handleDragStart);
+    sidebar.addEventListener('touchstart', handleTouchStart);
+
+    function handleDragStart(e) {
         const draggedElement = e.target;
         if (!draggedElement.classList.contains('emoji')) return;
-
         draggedEmoji = draggedElement.textContent;
         console.log(`Drag start: ${draggedEmoji}`);
-    });
+    }
+
+    function handleTouchStart(e) {
+        const draggedElement = e.target;
+        if (!draggedElement.classList.contains('emoji')) return;
+        draggedEmoji = draggedElement.textContent;
+        console.log(`Touch start: ${draggedEmoji}`);
+        e.preventDefault();
+    }
 
     // Ensure the worm is correctly added to the sidebar with event listeners
     function addEmojiToPanel(emoji, id) {
@@ -31,16 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
         emojiElement.classList.add('emoji');
         emojiElement.textContent = emoji;
         emojiElement.setAttribute('draggable', 'true');
-
-        // Attach the same dragstart listener
-        emojiElement.addEventListener('dragstart', (e) => {
-            const draggedElement = e.target;
-            if (!draggedElement.classList.contains('emoji')) return;
-
-            draggedEmoji = draggedElement.textContent;
-            console.log(`Drag start: ${draggedEmoji}`);
-        });
-
+        emojiElement.addEventListener('dragstart', handleDragStart);
+        emojiElement.addEventListener('touchstart', handleTouchStart);
         sidebar.appendChild(emojiElement);
         console.log(`${id} added to sidebar`);
     }
