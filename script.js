@@ -6,6 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDragging = false;
     let offsetX = 0;
     let offsetY = 0;
+    let firstBirdLanded = false;
+
+    const EMOJIS = {
+        BIRD: '🐦',
+        BUTTERFLY: '🦋',
+        TREE: '🌳',
+        WORM: '🐛',
+        BUSH: '🌺'
+    };
+
+    const INITIAL_EMOJIS = [
+        { id: 'bush', disabled: false },
+        { id: 'tree', disabled: true },
+        { id: 'butterfly', disabled: false }
+    ];
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
@@ -236,4 +251,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
 });
-
