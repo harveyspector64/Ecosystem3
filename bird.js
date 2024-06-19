@@ -50,19 +50,15 @@ function birdFlightPattern(bird, playArea, isErratic) {
 
             bird.hunger -= isErratic ? 1 : 0.5; // Faster hunger decrease if erratic
 
-            // Check for butterfly collisions
-            const butterflies = document.querySelectorAll('.butterfly');
-            butterflies.forEach(butterfly => {
-                const butterflyRect = butterfly.getBoundingClientRect();
+            // Check for nearby worms
+            const worms = document.querySelectorAll('.worm');
+            worms.forEach(worm => {
+                const wormRect = worm.getBoundingClientRect();
                 const birdRect = bird.getBoundingClientRect();
-                if (birdRect.left < butterflyRect.right &&
-                    birdRect.right > butterflyRect.left &&
-                    birdRect.top < butterflyRect.bottom &&
-                    birdRect.bottom > butterflyRect.top) {
-                    // Butterfly eaten
-                    butterfly.remove();
-                    bird.hunger = Math.min(bird.hunger + 5, 100); // Increase hunger by a small amount
-                    console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
+                const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
+                if (distance < 150) { // Increased detection range
+                    clearInterval(flightInterval);
+                    birdLandNearWorm(bird, worm, playArea);
                 }
             });
 
@@ -83,6 +79,32 @@ function birdFlightPattern(bird, playArea, isErratic) {
             birdLandingDecision(bird, playArea);
         }
     }, flightTime);
+}
+
+function birdLandNearWorm(bird, worm, playArea) {
+    console.log('Bird landing near a worm.');
+    bird.state = 'landing';
+    const wormRect = worm.getBoundingClientRect();
+
+    const landX = wormRect.left + (Math.random() * 20 - 10);
+    const landY = wormRect.top + (Math.random() * 20 - 10);
+
+    bird.style.left = `${Math.max(0, Math.min(landX, playArea.clientWidth - 20))}px`;
+    bird.style.top = `${Math.max(0, Math.min(landY, playArea.clientHeight - 20))}px`;
+
+    bird.style.transition = 'top 1s, left 1s';
+
+    setTimeout(() => {
+        bird.state = 'walking';
+        bird.walkCount = 0; // Reset walk count
+        birdWalkingPattern(bird, playArea);
+
+        if (!firstBirdLanded) {
+            firstBirdLanded = true;
+            // Call addWormToPanel() from script.js
+            window.addWormToPanel();
+        }
+    }, 1000); // Longer delay to simulate smooth landing
 }
 
 function birdLandingDecision(bird, playArea) {
