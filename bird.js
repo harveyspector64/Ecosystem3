@@ -286,7 +286,7 @@ function birdMoveToWorm(bird, worm, playArea) {
     const dy = wormRect.top - birdRect.top;
     const angle = Math.atan2(dy, dx);
 
-    const speed = 2;
+    const speed = 5;
     let moveTime = 0;
 
     const moveInterval = setInterval(() => {
@@ -320,6 +320,14 @@ function birdMoveToWorm(bird, worm, playArea) {
         if (Math.abs(newBirdRect.left - wormRect.left) < 10 && Math.abs(newBirdRect.top - wormRect.top) < 10) {
             clearInterval(moveInterval);
             eatWorm(bird, worm);
+        } else if (moveTime % 3000 === 0) { // Pause every 3 seconds
+            clearInterval(moveInterval);
+            const pauseDuration = Math.random() * 1000 + 500; // 0.5 to 1.5 seconds pause
+            bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
+            console.log(`Bird pausing while moving to worm for ${pauseDuration}ms`);
+            setTimeout(() => {
+                birdMoveToWorm(bird, worm, playArea); // Resume movement
+            }, pauseDuration);
         }
     }, 500);
 }
@@ -422,4 +430,4 @@ function addWormToPanel() {
 
     const sidebar = document.getElementById('sidebar');
     sidebar.appendChild(wormElement);
-}
+} 
