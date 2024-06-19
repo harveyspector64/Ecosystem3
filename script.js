@@ -2,7 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
     let draggedEmoji = null;
-    let firstBirdLanded = false;
+    let touchOffsetX = 0;
+    let touchOffsetY = 0;
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleDragStart(e) {
         const draggedElement = e.target;
         if (!draggedElement.classList.contains('emoji')) return;
+
         draggedEmoji = draggedElement.textContent;
         console.log(`Drag start: ${draggedEmoji}`);
     }
@@ -29,9 +31,54 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchStart(e) {
         const draggedElement = e.target;
         if (!draggedElement.classList.contains('emoji')) return;
+
         draggedEmoji = draggedElement.textContent;
+        const touch = e.touches[0];
+        touchOffsetX = touch.clientX - draggedElement.getBoundingClientRect().left;
+        touchOffsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
         console.log(`Touch start: ${draggedEmoji}`);
+        
+        playArea.addEventListener('touchmove', handleTouchMove);
+        playArea.addEventListener('touchend', handleTouchEnd);
         e.preventDefault();
+    }
+
+    function handleTouchMove(e) {
+        if (!draggedEmoji) return;
+
+        const touch = e.touches[0];
+        const x = touch.clientX - playArea.offsetLeft - touchOffsetX;
+        const y = touch.clientY - playArea.offsetTop - touchOffsetY;
+
+        const emojiElement = document.getElementById(draggedEmoji);
+        emojiElement.style.position = 'absolute';
+        emojiElement.style.left = `${x}px`;
+        emojiElement.style.top = `${y}px`;
+        emojiElement.style.zIndex = '1000'; // Ensure it's on top
+
+        e.preventDefault();
+    }
+
+    function handleTouchEnd(e) {
+        if (!draggedEmoji) return;
+
+        const touch = e.changedTouches[0];
+        const x = touch.clientX - playArea.offsetLeft - touchOffsetX;
+        const y = touch.clientY - playArea.offsetTop - touchOffsetY;
+
+        console.log(`Touch end: ${draggedEmoji} at (${x}, ${y})`);
+        if (draggedEmoji === EMOJIS.WORM) {
+            addWorm(x, y);
+        } else {
+            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
+        }
+
+        draggedEmoji = null;
+        touchOffsetX = 0;
+        touchOffsetY = 0;
+
+        playArea.removeEventListener('touchmove', handleTouchMove);
+        playArea.removeEventListener('touchend', handleTouchEnd);
     }
 
     // Ensure the worm is correctly added to the sidebar with event listeners
@@ -91,18 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle touch end event for mobile
-    playArea.addEventListener('touchend', (e) => {
-        if (draggedEmoji) {
-            const touch = e.changedTouches[0];
-            const x = touch.clientX - playArea.offsetLeft;
-            const y = touch.clientY - playArea.offsetTop;
-            console.log(`Touch end: ${draggedEmoji} at (${x}, ${y})`);
-            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
-            draggedEmoji = null;
-        } else {
-            console.log('No dragged emoji');
-        }
-    });
+    playArea.addEventListener('touchend', handleTouchEnd);
 
     function addEmojiToPlayArea(emoji, x, y, playArea) {
         const emojiElement = document.createElement('div');
