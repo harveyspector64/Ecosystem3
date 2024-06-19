@@ -2,8 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
     let draggedEmoji = null;
-    let touchOffsetX = 0;
-    let touchOffsetY = 0;
+    let draggingVisual = null; // For visual feedback (mobile only)
+    let isDragging = false; // Flag to track dragging state 
+    let offsetX = 0; 
+    let offsetY = 0; 
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Use a single dragstart event listener on the sidebar container
+    // Add both dragstart and touchstart listeners
     sidebar.addEventListener('dragstart', handleDragStart);
     sidebar.addEventListener('touchstart', handleTouchStart);
 
@@ -26,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         draggedEmoji = draggedElement.textContent;
         console.log(`Drag start: ${draggedEmoji}`);
+
+        // For desktop, set dataTransfer 
+        e.dataTransfer.setData('text/plain', draggedEmoji); 
+        isDragging = true; 
     }
 
     function handleTouchStart(e) {
@@ -34,51 +40,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
         draggedEmoji = draggedElement.textContent;
         const touch = e.touches[0];
-        touchOffsetX = touch.clientX - draggedElement.getBoundingClientRect().left;
-        touchOffsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
+        offsetX = touch.clientX - draggedElement.getBoundingClientRect().left;
+        offsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
         console.log(`Touch start: ${draggedEmoji}`);
-        
-        playArea.addEventListener('touchmove', handleTouchMove);
-        playArea.addEventListener('touchend', handleTouchEnd);
-        e.preventDefault();
+
+        // Create visual feedback for mobile
+        draggingVisual = createDraggingVisual(draggedEmoji);
+        document.body.appendChild(draggingVisual);
+        draggingVisual.style.left = `${touch.clientX - offsetX}px`;
+        draggingVisual.style.top = `${touch.clientY - offsetY}px`;
+
+        isDragging = true;
+        e.preventDefault(); 
     }
 
-    function handleTouchMove(e) {
-        if (!draggedEmoji) return;
-
-        const touch = e.touches[0];
-        const x = touch.clientX - playArea.offsetLeft - touchOffsetX;
-        const y = touch.clientY - playArea.offsetTop - touchOffsetY;
-
-        const emojiElement = document.getElementById(draggedEmoji);
-        emojiElement.style.position = 'absolute';
-        emojiElement.style.left = `${x}px`;
-        emojiElement.style.top = `${y}px`;
-        emojiElement.style.zIndex = '1000'; // Ensure it's on top
-
+    // Unified drag handling
+    playArea.addEventListener('dragover', (e) => {
         e.preventDefault();
-    }
+        if (isDragging && draggedEmoji) {
+            // Desktop drag handling
+            console.log('Drag over play area (desktop)'); 
+        }
+    });
 
-    function handleTouchEnd(e) {
-        if (!draggedEmoji) return;
+    playArea.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (isDragging && draggedEmoji && draggingVisual) {
+            // Mobile drag handling
+            const touch = e.touches[0];
+            draggingVisual.style.left = `${touch.clientX - offsetX}px`;
+            draggingVisual.style.top = `${touch.clientY - offsetY}px`;
+        }
+    });
 
-        const touch = e.changedTouches[0];
-        const x = touch.clientX - playArea.offsetLeft - touchOffsetX;
-        const y = touch.clientY - playArea.offsetTop - touchOffsetY;
+    // Unified drop handling
+    playArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (isDragging && draggedEmoji) {
+            // Desktop drop handling 
+            const x = e.clientX - playArea.offsetLeft;
+            const y = e.clientY - playArea.offsetTop;
+            placeEmoji(draggedEmoji, x, y);
+            isDragging = false; 
+        }
+    });
 
-        console.log(`Touch end: ${draggedEmoji} at (${x}, ${y})`);
-        if (draggedEmoji === EMOJIS.WORM) {
+    playArea.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (isDragging && draggedEmoji && draggingVisual) {
+            // Mobile drop handling
+            const touch = e.changedTouches[0];
+            const x = touch.clientX - playArea.offsetLeft - offsetX;
+            const y = touch.clientY - playArea.offsetTop - offsetY;
+            placeEmoji(draggedEmoji, x, y);
+
+            draggingVisual.remove();
+            draggingVisual = null;
+            isDragging = false; 
+        }
+    });
+
+    // Function to place emoji (desktop and mobile)
+    function placeEmoji(emoji, x, y) {
+        console.log(`Placing emoji: ${emoji} at (${x}, ${y})`);
+        if (emoji === EMOJIS.WORM) {
             addWorm(x, y);
         } else {
-            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
+            addEmojiToPlayArea(emoji, x, y, playArea);
         }
+    }
 
-        draggedEmoji = null;
-        touchOffsetX = 0;
-        touchOffsetY = 0;
-
-        playArea.removeEventListener('touchmove', handleTouchMove);
-        playArea.removeEventListener('touchend', handleTouchEnd);
+    function createDraggingVisual(emoji) {
+        const draggingVisual = document.createElement('div');
+        draggingVisual.textContent = emoji;
+        draggingVisual.classList.add('dragging-visual');
+        draggingVisual.style.position = 'fixed';
+        draggingVisual.style.pointerEvents = 'none';
+        return draggingVisual;
     }
 
     // Ensure the worm is correctly added to the sidebar with event listeners
@@ -122,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle drop event in play area
     playArea.addEventListener('drop', (e) => {
         e.preventDefault();
-        if (draggedEmoji) {
+        if (isDragging && draggedEmoji) {
             const x = e.clientX - playArea.offsetLeft;
             const y = e.clientY - playArea.offsetTop;
             console.log(`Drop: ${draggedEmoji} at (${x}, ${y})`);
@@ -131,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             }
-            draggedEmoji = null;
+            isDragging = false;
         } else {
             console.log('No dragged emoji');
         }
