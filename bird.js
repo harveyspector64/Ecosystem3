@@ -161,6 +161,9 @@ function birdFlyToTree(bird, playArea) {
                 bird.style.top = `${newY}px`;
             }
         }, 100);
+    } else {
+        console.log('No tree found, continuing flight.');
+        birdAscendAndFlight(bird, playArea);
     }
 }
 
