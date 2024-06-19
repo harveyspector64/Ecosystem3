@@ -6,7 +6,9 @@ const birdStates = {
     FLYING: 'flying',
     WALKING: 'walking',
     MOVING_TO_WORM: 'movingToWorm',
-    EATING: 'eating'
+    EATING: 'eating',
+    DESCENDING: 'descending',
+    LANDING: 'landing'
 };
 
 function setState(bird, newState) {
@@ -118,7 +120,6 @@ function birdLandingDecision(bird, playArea) {
         birdDescendToGround(bird, playArea);
     } else if (bird.hunger <= 60) {
         console.log('Bird hunger between 30 and 60, actively searching for food.');
-        bird.state = 'activeSearching';
         birdFlightPattern(bird, playArea, true);
     } else {
         console.log('Bird hunger above 60, flying to a tree to perch.');
