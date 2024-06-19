@@ -2,10 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
     let draggedEmoji = null;
-    let draggingVisual = null; // For visual feedback (mobile only)
-    let isDragging = false; // Flag to track dragging state 
-    let offsetX = 0; 
-    let offsetY = 0; 
+    let draggingVisual = null;
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
@@ -29,9 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedEmoji = draggedElement.textContent;
         console.log(`Drag start: ${draggedEmoji}`);
 
-        // For desktop, set dataTransfer 
-        e.dataTransfer.setData('text/plain', draggedEmoji); 
-        isDragging = true; 
+        e.dataTransfer.setData('text/plain', draggedEmoji);
+        isDragging = true;
     }
 
     function handleTouchStart(e) {
@@ -44,57 +43,44 @@ document.addEventListener('DOMContentLoaded', () => {
         offsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
         console.log(`Touch start: ${draggedEmoji}`);
 
-        // Create visual feedback for mobile
         draggingVisual = createDraggingVisual(draggedEmoji);
-        document.body.appendChild(draggingVisual);
         draggingVisual.style.left = `${touch.clientX - offsetX}px`;
         draggingVisual.style.top = `${touch.clientY - offsetY}px`;
 
         isDragging = true;
-        e.preventDefault(); 
+        e.preventDefault();
     }
 
-    // Unified drag handling
     playArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji) {
-            // Desktop drag handling
-            if (Date.now() % 1000 < 20) { // Reduce log frequency
-                console.log('Drag over play area (desktop)');
-            }
+            console.log('Drag over play area (desktop)');
         }
     });
 
     playArea.addEventListener('touchmove', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji && draggingVisual) {
-            // Mobile drag handling
             const touch = e.touches[0];
             draggingVisual.style.left = `${touch.clientX - offsetX}px`;
             draggingVisual.style.top = `${touch.clientY - offsetY}px`;
-
-            if (Date.now() % 1000 < 20) { // Reduce log frequency
-                console.log('Touch move over play area');
-            }
         }
     });
 
-    // Unified drop handling
     playArea.addEventListener('drop', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji) {
-            // Desktop drop handling 
             const x = e.clientX - playArea.offsetLeft;
             const y = e.clientY - playArea.offsetTop;
             placeEmoji(draggedEmoji, x, y);
-            isDragging = false; 
+            isDragging = false;
+            draggedEmoji = null;
         }
     });
 
     playArea.addEventListener('touchend', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji && draggingVisual) {
-            // Mobile drop handling
             const touch = e.changedTouches[0];
             const x = touch.clientX - playArea.offsetLeft - offsetX;
             const y = touch.clientY - playArea.offsetTop - offsetY;
@@ -102,26 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             draggingVisual.remove();
             draggingVisual = null;
-            isDragging = false; 
+            isDragging = false;
+            draggedEmoji = null;
         }
     });
 
-    function handleTouchEnd(e) {
-        e.preventDefault();
-        if (isDragging && draggedEmoji && draggingVisual) {
-            // Mobile drop handling
-            const touch = e.changedTouches[0];
-            const x = touch.clientX - playArea.offsetLeft - offsetX;
-            const y = touch.clientY - playArea.offsetTop - offsetY;
-            placeEmoji(draggedEmoji, x, y);
-
-            draggingVisual.remove();
-            draggingVisual = null;
-            isDragging = false; 
-        }
-    }
-
-    // Function to place emoji (desktop and mobile)
     function placeEmoji(emoji, x, y) {
         console.log(`Placing emoji: ${emoji} at (${x}, ${y})`);
         if (emoji === EMOJIS.WORM) {
@@ -132,78 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createDraggingVisual(emoji) {
-        const draggingVisual = document.createElement('div');
-        draggingVisual.textContent = emoji;
-        draggingVisual.classList.add('dragging-visual');
-        draggingVisual.style.position = 'fixed';
-        draggingVisual.style.pointerEvents = 'none';
-        return draggingVisual;
+        const visual = document.createElement('div');
+        visual.textContent = emoji;
+        visual.classList.add('dragging-visual');
+        document.body.appendChild(visual);
+        return visual;
     }
-
-    // Ensure the worm is correctly added to the sidebar with event listeners
-    function addEmojiToPanel(emoji, id) {
-        const emojiElement = document.createElement('div');
-        emojiElement.id = id;
-        emojiElement.classList.add('emoji');
-        emojiElement.textContent = emoji;
-        emojiElement.setAttribute('draggable', 'true');
-        emojiElement.addEventListener('dragstart', handleDragStart);
-        emojiElement.addEventListener('touchstart', handleTouchStart);
-        sidebar.appendChild(emojiElement);
-        console.log(`${id} added to sidebar`);
-    }
-
-    // Call this function when the first bird lands
-    function addWormToPanelWhenFirstBirdLands() {
-        if (!firstBirdLanded) {
-            firstBirdLanded = true;
-            addEmojiToPanel(EMOJIS.WORM, 'worm');
-        }
-    }
-
-    // Define addWorm function
-    function addWorm(x, y) {
-        const wormElement = document.createElement('div');
-        wormElement.textContent = EMOJIS.WORM;
-        wormElement.classList.add('emoji', 'worm');
-        wormElement.style.position = 'absolute';
-        wormElement.style.left = `${x}px`;
-        wormElement.style.top = `${y}px`;
-        playArea.appendChild(wormElement);
-    }
-
-    // Handle drag over event in play area
-    playArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        console.log('Drag over play area');
-    });
-
-    // Handle drop event in play area
-    playArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (isDragging && draggedEmoji) {
-            const x = e.clientX - playArea.offsetLeft;
-            const y = e.clientY - playArea.offsetTop;
-            console.log(`Drop: ${draggedEmoji} at (${x}, ${y})`);
-            if (draggedEmoji === EMOJIS.WORM) {
-                addWorm(x, y);
-            } else {
-                addEmojiToPlayArea(draggedEmoji, x, y, playArea);
-            }
-            isDragging = false;
-        } else {
-            console.log('No dragged emoji');
-        }
-    });
-
-    // Handle touch end event for mobile
-    playArea.addEventListener('touchend', handleTouchEnd);
 
     function addEmojiToPlayArea(emoji, x, y, playArea) {
         const emojiElement = document.createElement('div');
         emojiElement.textContent = emoji;
 
-        // Apply specific classes for styling
         if (emoji === EMOJIS.TREE) {
             emojiElement.classList.add('emoji', 'tree');
         } else if (emoji === EMOJIS.BUTTERFLY) {
@@ -223,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`Added ${emoji} to play area at (${x}, ${y})`);
 
-        // Additional logic for specific emojis
         if (emoji === EMOJIS.BUSH) {
             addButterflies(x, y, playArea);
             unlockTree();
@@ -239,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function addButterflies(x, y, playArea) {
-        const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
+        const numButterflies = Math.floor(Math.random() * 2) + 1;
         for (let i = 0; i < numButterflies; i++) {
             setTimeout(() => createButterfly(x, y, playArea), getRandomTime(10, 20) * 1000);
         }
@@ -254,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         butterflyElement.style.top = getRandomEdgePosition('y', playArea) + 'px';
         playArea.appendChild(butterflyElement);
 
-        butterflyElement.hunger = 100; // Initialize hunger bar
+        butterflyElement.hunger = 100;
         moveButterfly(butterflyElement, targetX, targetY, playArea);
     }
 
@@ -263,8 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentX = parseFloat(butterfly.style.left);
             const currentY = parseFloat(butterfly.style.top);
 
-            const angle = Math.random() * Math.PI * 2; // Random angle
-            const distance = Math.random() * 20 + 30; // Smaller distance for smoother movement
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 20 + 30;
 
             const newX = currentX + distance * Math.cos(angle);
             const newY = currentY + distance * Math.sin(angle);
@@ -272,13 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
             butterfly.style.left = `${newX}px`;
             butterfly.style.top = `${newY}px`;
 
-            butterfly.hunger -= 1; // Decrease hunger over time
+            butterfly.hunger -= 1;
 
             if (butterfly.hunger <= 0) {
                 clearInterval(interval);
                 butterflyLand(butterfly, targetX, targetY, playArea);
             }
-        }, 300); // Slower interval for smoother, less jerky movement
+        }, 300);
     }
 
     function butterflyLand(butterfly, targetX, targetY, playArea) {
@@ -304,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             butterfly.style.top = nearestBush.style.top;
 
             setTimeout(() => {
-                butterfly.hunger = 100; // Reset hunger
+                butterfly.hunger = 100;
                 moveButterfly(butterfly, parseFloat(nearestBush.style.left), parseFloat(nearestBush.style.top), playArea);
             }, getRandomTime(5, 10) * 1000);
         }
@@ -312,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getRandomEdgePosition(axis, playArea) {
         if (axis === 'x') {
-            return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20; // Adjust 20 for margin
+            return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20;
         } else {
             return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
         }
@@ -322,7 +231,5 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
-    // Expose addWormToPanel globally
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
 });
-
