@@ -277,25 +277,3 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addButterflies = addButterflies;
     window.addBird = addBird;
 });
-
-function addBird(x, y, playArea) {
-    const delay = Math.random() * 8000 + 4000; // 4-12 seconds delay
-    console.log(`Spawning bird after delay: ${delay}`);
-
-    setTimeout(() => {
-        const birdElement = document.createElement('div');
-        birdElement.textContent = EMOJIS.BIRD;
-        birdElement.classList.add('emoji', 'bird');
-        birdElement.style.position = 'absolute';
-        birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
-        birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
-        birdElement.style.zIndex = '1'; // Ensure bird is above other elements
-        playArea.appendChild(birdElement);
-
-        birdElement.hunger = 100; // Initialize hunger
-        setState(birdElement, birdStates.FLYING);
-        console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
-
-        birdFlightPattern(birdElement, playArea, false);
-    }, delay);
-}
