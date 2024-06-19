@@ -280,10 +280,19 @@ function birdMoveToWorm(bird, worm, playArea) {
     const angle = Math.atan2(dy, dx);
 
     const speed = 2;
+    let moveTime = 0;
 
     const moveInterval = setInterval(() => {
+        moveTime += 500;
         if (bird.currentState !== birdStates.MOVING_TO_WORM) {
             clearInterval(moveInterval);
+            return;
+        }
+
+        if (moveTime >= 5000) {
+            clearInterval(moveInterval);
+            console.log('Bird took too long to reach the worm, resuming flight.');
+            birdAscendAndFlight(bird, playArea);
             return;
         }
 
