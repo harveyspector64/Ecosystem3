@@ -48,7 +48,7 @@ function birdFlightPattern(bird, playArea, isErratic) {
             bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
             bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-            bird.hunger -= 0.5; // Decrease hunger slower
+            bird.hunger -= isErratic ? 1 : 0.5; // Faster hunger decrease if erratic
 
             // Check for butterfly collisions
             const butterflies = document.querySelectorAll('.butterfly');
@@ -88,11 +88,15 @@ function birdFlightPattern(bird, playArea, isErratic) {
 function birdLandingDecision(bird, playArea) {
     console.log(`Bird deciding where to land. Hunger: ${bird.hunger}`);
 
-    if (bird.hunger <= 60) {
-        console.log('Bird hunger below 60, landing on the ground.');
+    if (bird.hunger <= 30) {
+        console.log('Bird hunger below 30, landing on the ground to hunt.');
         birdDescendToGround(bird, playArea);
+    } else if (bird.hunger <= 60) {
+        console.log('Bird hunger between 30 and 60, actively searching for food.');
+        bird.state = 'activeSearching';
+        birdFlightPattern(bird, playArea, true);
     } else {
-        console.log('Bird hunger above 60, flying to a tree to land.');
+        console.log('Bird hunger above 60, flying to a tree to perch.');
         birdFlyToTree(bird, playArea);
     }
 }
@@ -209,7 +213,7 @@ function birdWalkingPattern(bird, playArea) {
                             const wormRect = worm.getBoundingClientRect();
                             const birdRect = bird.getBoundingClientRect();
                             const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
-                            if (distance < minDistance && distance < 100) { // If within 100 pixels and nearest
+                            if (distance < minDistance && distance < 150) { // Increased detection range
                                 minDistance = distance;
                                 nearestWorm = worm;
                             }
@@ -288,7 +292,7 @@ function birdMoveToWorm(bird, worm, playArea) {
             nearbyWorms.forEach(otherWorm => {
                 const otherWormRect = otherWorm.getBoundingClientRect();
                 const distance = Math.sqrt((newBirdRect.left - otherWormRect.left) ** 2 + (newBirdRect.top - otherWormRect.top) ** 2);
-                if (distance < 100) { // If another worm is within 100 pixels
+                if (distance < 150) { // Increased detection range
                     foundWorm = true;
                     birdMoveToWorm(bird, otherWorm, playArea);
                 }
