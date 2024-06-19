@@ -123,7 +123,7 @@ function birdLandingDecision(bird, playArea) {
         console.log('Bird hunger between 30 and 60, actively searching for food.');
         birdFlightPattern(bird, playArea, true);
     } else {
-        console.log('Bird hunger above 60, flying to a tree to perch.');
+        console.log('Bird hunger above 70, flying to a tree to perch.');
         birdFlyToTree(bird, playArea);
     }
 }
@@ -289,7 +289,7 @@ function birdMoveToWorm(bird, worm, playArea) {
             return;
         }
 
-        if (moveTime >= 5000) {
+        if (moveTime >= 15000) { // 15 seconds timeout
             clearInterval(moveInterval);
             console.log('Bird took too long to reach the worm, resuming flight.');
             birdAscendAndFlight(bird, playArea);
