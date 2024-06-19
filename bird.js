@@ -1,6 +1,19 @@
 const playArea = document.getElementById('play-area');
 let firstBirdLanded = false;
 
+const birdStates = {
+    PERCHING: 'perching',
+    FLYING: 'flying',
+    WALKING: 'walking',
+    MOVING_TO_WORM: 'movingToWorm',
+    EATING: 'eating'
+};
+
+function setState(bird, newState) {
+    console.log(`Bird state transition: ${bird.currentState} -> ${newState}`);
+    bird.currentState = newState;
+}
+
 function addBird(x, y, playArea) {
     const delay = Math.random() * 8000 + 4000; // 4-12 seconds delay
     console.log(`Spawning bird after delay: ${delay}`);
@@ -16,6 +29,7 @@ function addBird(x, y, playArea) {
         playArea.appendChild(birdElement);
 
         birdElement.hunger = 100; // Initialize hunger
+        birdElement.currentState = birdStates.FLYING;
         console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
 
         birdFlightPattern(birdElement, playArea, false);
@@ -23,57 +37,48 @@ function addBird(x, y, playArea) {
 }
 
 function birdFlightPattern(bird, playArea, isErratic) {
-    console.log(`Entering birdFlightPattern for bird at: ${bird.style.left} ${bird.style.top}, isErratic: ${isErratic}`);
+    setState(bird, birdStates.FLYING);
 
-    bird.state = 'flying';
     const flightTime = Math.random() * 10000 + 5000; // 5-15 seconds
-    let lastDebugTime = Date.now(); // Timestamp for throttling debug messages
+    let lastDebugTime = Date.now();
 
     const flightInterval = setInterval(() => {
-        if (bird.state === 'flying') {
-            if (Date.now() - lastDebugTime > 3000) { // Log every 3 seconds
-                console.log(`Bird is flying at: ${bird.style.left} ${bird.style.top}`);
-                lastDebugTime = Date.now();
-            }
+        if (bird.currentState !== birdStates.FLYING) {
+            clearInterval(flightInterval);
+            return;
+        }
 
-            const currentX = parseFloat(bird.style.left);
-            const currentY = parseFloat(bird.style.top);
+        if (Date.now() - lastDebugTime > 3000) {
+            console.log(`Bird is flying at: ${bird.style.left} ${bird.style.top}`);
+            lastDebugTime = Date.now();
+        }
 
-            // Determine flight pattern
-            const angle = Math.random() * Math.PI * 2; // Random angle
-            const distance = isErratic ? (Math.random() * 40 + 60) : (Math.random() * 20 + 30); // Erratic vs normal distance
-            const newX = currentX + distance * Math.cos(angle);
-            const newY = currentY + distance * Math.sin(angle);
+        const currentX = parseFloat(bird.style.left);
+        const currentY = parseFloat(bird.style.top);
 
-            bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
-            bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
+        const angle = Math.random() * Math.PI * 2;
+        const distance = isErratic ? (Math.random() * 40 + 60) : (Math.random() * 20 + 30);
+        const newX = currentX + distance * Math.cos(angle);
+        const newY = currentY + distance * Math.sin(angle);
 
-            bird.hunger -= isErratic ? 1 : 0.5; // Faster hunger decrease if erratic
+        bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
+        bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-            // Check for nearby worms
-            const worms = document.querySelectorAll('.worm');
-            worms.forEach(worm => {
-                const wormRect = worm.getBoundingClientRect();
-                const birdRect = bird.getBoundingClientRect();
-                const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
-                if (distance < 150) { // Increased detection range
-                    clearInterval(flightInterval);
-                    birdLandNearWorm(bird, worm, playArea);
-                }
-            });
+        bird.hunger -= isErratic ? 1 : 0.5;
 
-            // Boundary check
-            if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
-                console.log(`Bird hit the boundary at: ${newX} ${newY}`);
-                clearInterval(flightInterval);
-                birdLandingDecision(bird, playArea);
-            }
+        // Check for nearby worms
+        detectWorms(bird, playArea);
+
+        // Boundary check
+        if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
+            console.log(`Bird hit the boundary at: ${newX} ${newY}`);
+            clearInterval(flightInterval);
+            birdLandingDecision(bird, playArea);
         }
     }, 500);
 
-    // Set timeout for changing state after flight time
     setTimeout(() => {
-        if (bird.state === 'flying') {
+        if (bird.currentState === birdStates.FLYING) {
             clearInterval(flightInterval);
             console.log('Bird completing flight time, preparing to land.');
             birdLandingDecision(bird, playArea);
@@ -83,7 +88,8 @@ function birdFlightPattern(bird, playArea, isErratic) {
 
 function birdLandNearWorm(bird, worm, playArea) {
     console.log('Bird landing near a worm.');
-    bird.state = 'landing';
+    setState(bird, birdStates.LANDING);
+
     const wormRect = worm.getBoundingClientRect();
 
     const landX = wormRect.left + (Math.random() * 20 - 10);
@@ -95,13 +101,12 @@ function birdLandNearWorm(bird, worm, playArea) {
     bird.style.transition = 'top 1s, left 1s';
 
     setTimeout(() => {
-        bird.state = 'walking';
+        setState(bird, birdStates.WALKING);
         bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird, playArea);
 
         if (!firstBirdLanded) {
             firstBirdLanded = true;
-            // Call addWormToPanel() from script.js
             window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
@@ -126,14 +131,19 @@ function birdLandingDecision(bird, playArea) {
 function birdFlyToTree(bird, playArea) {
     console.log('Bird flying to tree.');
 
-    bird.state = 'flying';
+    setState(bird, birdStates.FLYING);
+
     const tree = getNearestTree(bird);
     if (tree) {
         const treeX = parseFloat(tree.style.left);
         const treeY = parseFloat(tree.style.top);
 
-        // Fly to the tree location
         const flyInterval = setInterval(() => {
+            if (bird.currentState !== birdStates.FLYING) {
+                clearInterval(flyInterval);
+                return;
+            }
+
             const currentX = parseFloat(bird.style.left);
             const currentY = parseFloat(bird.style.top);
             const dx = treeX - currentX;
@@ -145,7 +155,7 @@ function birdFlyToTree(bird, playArea) {
                 birdLandOnTree(bird, treeX, treeY, playArea);
             } else {
                 const angle = Math.atan2(dy, dx);
-                const speed = 5; // Speed of flying towards the tree
+                const speed = 5;
                 const newX = currentX + speed * Math.cos(angle);
                 const newY = currentY + speed * Math.sin(angle);
                 bird.style.left = `${newX}px`;
@@ -158,17 +168,17 @@ function birdFlyToTree(bird, playArea) {
 function birdDescendToGround(bird, playArea) {
     console.log('Bird descending to land on the ground.');
 
-    bird.state = 'descending';
+    setState(bird, birdStates.DESCENDING);
+
     bird.style.transition = 'top 1s, left 1s';
-    bird.style.top = `${parseFloat(bird.style.top) + 50}px`; // Descend a bit to simulate landing
+    bird.style.top = `${parseFloat(bird.style.top) + 50}px`;
     setTimeout(() => {
-        bird.state = 'walking';
+        setState(bird, birdStates.WALKING);
         bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird, playArea);
 
         if (!firstBirdLanded) {
             firstBirdLanded = true;
-            // Call addWormToPanel() from script.js
             window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
@@ -177,7 +187,8 @@ function birdDescendToGround(bird, playArea) {
 function birdLandOnTree(bird, treeX, treeY, playArea) {
     console.log(`Bird landing on a tree at: ${treeX}, ${treeY}`);
 
-    bird.state = 'landing';
+    setState(bird, birdStates.LANDING);
+
     setTimeout(() => {
         bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
         bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
@@ -195,86 +206,67 @@ function birdLandOnTree(bird, treeX, treeY, playArea) {
 function birdWalkingPattern(bird, playArea) {
     console.log('Bird walking on the ground.');
 
-    let walkCount = 0; // Counter for walks
-    const maxWalks = 2 + Math.floor(Math.random() * 5) + 2; // 2-6 walk/pause cycles
+    let walkCount = 0;
+    const maxWalks = 2 + Math.floor(Math.random() * 5) + 2;
 
     const walkInterval = setInterval(() => {
-        if (bird.state === 'walking') {
-            walkCount++;
-            const stepCount = 5 + Math.floor(Math.random() * 5); // 5-9 steps per pattern
-
-            const performSteps = () => {
-                let stepIndex = 0;
-                const stepInterval = setInterval(() => {
-                    if (stepIndex < stepCount && bird.state === 'walking') {
-                        stepIndex++;
-                        const currentX = parseFloat(bird.style.left);
-                        const currentY = parseFloat(bird.style.top);
-
-                        // Smaller, hop-like steps
-                        const distance = Math.random() * 5 + 2; // Shorter distance for hop-like movement
-                        const angle = Math.random() * Math.PI * 2; // Random angle
-
-                        const newX = currentX + distance * Math.cos(angle);
-                        const newY = currentY + distance * Math.sin(angle);
-
-                        bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`; // Confining to map
-                        bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`; // Confining to map
-
-                        // Smooth transition for hops
-                        bird.style.transition = 'top 0.3s, left 0.3s';
-
-                        console.log('Bird walked to', bird.style.left, bird.style.top);
-
-                        // Check for nearby worms during each step
-                        const worms = document.querySelectorAll('.worm');
-                        let nearestWorm = null;
-                        let minDistance = Infinity;
-
-                        worms.forEach(worm => {
-                            const wormRect = worm.getBoundingClientRect();
-                            const birdRect = bird.getBoundingClientRect();
-                            const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
-                            if (distance < minDistance && distance < 150) { // Increased detection range
-                                minDistance = distance;
-                                nearestWorm = worm;
-                            }
-                        });
-
-                        if (nearestWorm) {
-                            clearInterval(stepInterval);
-                            clearInterval(walkInterval);
-                            console.log('Bird sees a worm and moves towards it.');
-                            birdMoveToWorm(bird, nearestWorm, playArea);
-                        }
-                    } else {
-                        clearInterval(stepInterval);
-                        if (bird.state === 'walking') {
-                            const pauseDuration = Math.random() * 5000 + 2000; // Random pause between 2-7 seconds
-                            bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)'; // Simulate looking both ways
-                            console.log(`Bird pausing for ${pauseDuration}ms`);
-                            setTimeout(() => {
-                                if (walkCount < maxWalks && bird.state === 'walking') {
-                                    performSteps();
-                                } else {
-                                    clearInterval(walkInterval);
-                                    birdAscendAndFlight(bird, playArea);
-                                }
-                            }, pauseDuration);
-                        }
-                    }
-                }, 500); // Step interval, slower speed
-            };
-
-            performSteps();
+        if (bird.currentState !== birdStates.WALKING) {
+            clearInterval(walkInterval);
+            return;
         }
-    }, 1000); // Initial delay before starting the walking pattern
+
+        walkCount++;
+        const stepCount = 5 + Math.floor(Math.random() * 5);
+
+        const performSteps = () => {
+            let stepIndex = 0;
+            const stepInterval = setInterval(() => {
+                if (stepIndex < stepCount && bird.currentState === birdStates.WALKING) {
+                    stepIndex++;
+                    const currentX = parseFloat(bird.style.left);
+                    const currentY = parseFloat(bird.style.top);
+
+                    const distance = Math.random() * 5 + 2;
+                    const angle = Math.random() * Math.PI * 2;
+
+                    const newX = currentX + distance * Math.cos(angle);
+                    const newY = currentY + distance * Math.sin(angle);
+
+                    bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
+                    bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
+
+                    bird.style.transition = 'top 0.3s, left 0.3s';
+
+                    console.log('Bird walked to', bird.style.left, bird.style.top);
+
+                    detectWorms(bird, playArea);
+                } else {
+                    clearInterval(stepInterval);
+                    if (bird.currentState === birdStates.WALKING) {
+                        const pauseDuration = Math.random() * 5000 + 2000;
+                        bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
+                        console.log(`Bird pausing for ${pauseDuration}ms`);
+                        setTimeout(() => {
+                            if (walkCount < maxWalks && bird.currentState === birdStates.WALKING) {
+                                performSteps();
+                            } else {
+                                clearInterval(walkInterval);
+                                birdAscendAndFlight(bird, playArea);
+                            }
+                        }, pauseDuration);
+                    }
+                }
+            }, 500);
+        };
+
+        performSteps();
+    }, 1000);
 }
 
 function birdMoveToWorm(bird, worm, playArea) {
+    setState(bird, birdStates.MOVING_TO_WORM);
     console.log('Bird moving to worm.');
 
-    bird.state = 'movingToWorm';
     const wormRect = worm.getBoundingClientRect();
     const birdRect = bird.getBoundingClientRect();
 
@@ -282,13 +274,17 @@ function birdMoveToWorm(bird, worm, playArea) {
     const dy = wormRect.top - birdRect.top;
     const angle = Math.atan2(dy, dx);
 
-    const speed = 2; // Speed of moving towards the worm
+    const speed = 2;
 
     const moveInterval = setInterval(() => {
+        if (bird.currentState !== birdStates.MOVING_TO_WORM) {
+            clearInterval(moveInterval);
+            return;
+        }
+
         const currentX = parseFloat(bird.style.left);
         const currentY = parseFloat(bird.style.top);
 
-        // Move in hop-like steps towards the worm
         const distance = Math.random() * 5 + 2;
         const newX = currentX + distance * Math.cos(angle);
         const newY = currentY + distance * Math.sin(angle);
@@ -300,48 +296,58 @@ function birdMoveToWorm(bird, worm, playArea) {
 
         const newBirdRect = bird.getBoundingClientRect();
 
-        // Check if bird is close enough to worm to eat it
         if (Math.abs(newBirdRect.left - wormRect.left) < 10 && Math.abs(newBirdRect.top - wormRect.top) < 10) {
             clearInterval(moveInterval);
-            // Eat the worm
-            worm.remove();
-            bird.hunger = Math.min(bird.hunger + 20, 100); // Increase hunger
-            console.log(`Bird ate a worm. Hunger: ${bird.hunger}`);
-
-            // Check for nearby worms
-            const nearbyWorms = document.querySelectorAll('.worm');
-            let foundWorm = false;
-            nearbyWorms.forEach(otherWorm => {
-                const otherWormRect = otherWorm.getBoundingClientRect();
-                const distance = Math.sqrt((newBirdRect.left - otherWormRect.left) ** 2 + (newBirdRect.top - otherWormRect.top) ** 2);
-                if (distance < 150) { // Increased detection range
-                    foundWorm = true;
-                    birdMoveToWorm(bird, otherWorm, playArea);
-                }
-            });
-
-            if (!foundWorm) {
-                birdAscendAndFlight(bird, playArea);
-            }
-        } else if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
-            // Boundary check during worm movement
-            clearInterval(moveInterval);
-            console.log(`Bird hit the boundary while moving to worm at: ${newX} ${newY}`);
-            birdAscendAndFlight(bird, playArea);
+            eatWorm(bird, worm);
         }
-    }, 500); // Interval for hop-like movement
+    }, 500);
+}
+
+function eatWorm(bird, worm) {
+    setState(bird, birdStates.EATING);
+    console.log(`Bird ate a worm. Hunger: ${bird.hunger}`);
+
+    worm.remove();
+    bird.hunger = Math.min(bird.hunger + 20, 100);
+
+    setTimeout(() => {
+        detectWorms(bird, playArea);
+    }, 1000);
+}
+
+function detectWorms(bird, playArea) {
+    const worms = document.querySelectorAll('.worm');
+    let nearestWorm = null;
+    let minDistance = Infinity;
+
+    worms.forEach(worm => {
+        const wormRect = worm.getBoundingClientRect();
+        const birdRect = bird.getBoundingClientRect();
+        const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
+        if (distance < minDistance && distance < 150) {
+            minDistance = distance;
+            nearestWorm = worm;
+        }
+    });
+
+    if (nearestWorm) {
+        birdMoveToWorm(bird, nearestWorm, playArea);
+    } else {
+        birdAscendAndFlight(bird, playArea);
+    }
 }
 
 function birdAscendAndFlight(bird, playArea) {
     console.log('Bird ascending to flight.');
 
-    bird.state = 'ascending';
+    setState(bird, birdStates.ASCENDING);
+
     bird.style.transition = 'top 1s, left 1s';
-    bird.style.top = `${parseFloat(bird.style.top) - 50}px`; // Ascend a bit to simulate takeoff
+    bird.style.top = `${parseFloat(bird.style.top) - 50}px`;
     setTimeout(() => {
-        bird.state = 'flying';
-        birdFlightPattern(bird, playArea, bird.hunger <= 60); // Check if the flight should be erratic
-    }, 1000); // Longer delay to simulate smooth takeoff
+        setState(bird, birdStates.FLYING);
+        birdFlightPattern(bird, playArea, bird.hunger <= 60);
+    }, 1000);
 }
 
 function getNearestTree(bird) {
@@ -369,7 +375,7 @@ function addWormToPanel() {
     wormElement.classList.add('emoji');
     wormElement.textContent = EMOJIS.WORM;
     wormElement.setAttribute('draggable', 'true');
-    wormElement.style.zIndex = '0'; // Ensure worm is below other elements
+    wormElement.style.zIndex = '0';
     wormElement.addEventListener('dragstart', (e) => {
         const draggedElement = e.target;
         if (!draggedElement.classList.contains('emoji')) return;
