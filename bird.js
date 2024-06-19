@@ -8,7 +8,8 @@ const birdStates = {
     MOVING_TO_WORM: 'movingToWorm',
     EATING: 'eating',
     DESCENDING: 'descending',
-    LANDING: 'landing'
+    LANDING: 'landing',
+    ASCENDING: 'ascending'
 };
 
 function setState(bird, newState) {
