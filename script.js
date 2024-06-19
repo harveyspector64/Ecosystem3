@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         offsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
         console.log(`Touch start: ${draggedEmoji}`);
 
+        // Create visual feedback for mobile
         draggingVisual = createDraggingVisual(draggedEmoji);
         draggingVisual.style.left = `${touch.clientX - offsetX}px`;
         draggingVisual.style.top = `${touch.clientY - offsetY}px`;
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
     }
 
+    // Unified drag handling
     playArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji) {
@@ -67,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Unified drop handling
     playArea.addEventListener('drop', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji) {
@@ -231,5 +234,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
+    function addWorm(x, y) {
+        const wormElement = document.createElement('div');
+        wormElement.textContent = EMOJIS.WORM;
+        wormElement.classList.add('emoji', 'worm');
+        wormElement.style.position = 'absolute';
+        wormElement.style.left = `${x}px`;
+        wormElement.style.top = `${y}px`;
+        playArea.appendChild(wormElement);
+    }
+
+    function addWormToPanelWhenFirstBirdLands() {
+        if (!firstBirdLanded) {
+            firstBirdLanded = true;
+            addEmojiToPanel(EMOJIS.WORM, 'worm');
+        }
+    }
+
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
+
+    function addEmojiToPanel(emoji, id) {
+        const emojiElement = document.createElement('div');
+        emojiElement.id = id;
+        emojiElement.classList.add('emoji');
+        emojiElement.textContent = emoji;
+        emojiElement.setAttribute('draggable', 'true');
+
+        emojiElement.addEventListener('dragstart', (e) => {
+            const draggedElement = e.target;
+            if (!draggedElement.classList.contains('emoji')) return;
+
+            draggedEmoji = draggedElement.textContent;
+            console.log(`Drag start: ${draggedEmoji}`);
+        });
+
+        sidebar.appendChild(emojiElement);
+        console.log(`${id} added to sidebar`);
+    }
 });
