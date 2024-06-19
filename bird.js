@@ -29,7 +29,7 @@ function addBird(x, y, playArea) {
         playArea.appendChild(birdElement);
 
         birdElement.hunger = 100; // Initialize hunger
-        birdElement.currentState = birdStates.FLYING;
+        setState(birdElement, birdStates.FLYING);
         console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
 
         birdFlightPattern(birdElement, playArea, false);
@@ -66,10 +66,8 @@ function birdFlightPattern(bird, playArea, isErratic) {
 
         bird.hunger -= isErratic ? 1 : 0.5;
 
-        // Check for nearby worms
         detectWorms(bird, playArea);
 
-        // Boundary check
         if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
             console.log(`Bird hit the boundary at: ${newX} ${newY}`);
             clearInterval(flightInterval);
@@ -324,7 +322,7 @@ function detectWorms(bird, playArea) {
         const wormRect = worm.getBoundingClientRect();
         const birdRect = bird.getBoundingClientRect();
         const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
-        if (distance < minDistance && distance < 150) {
+        if (distance < minDistance && distance < 300) { // Increased detection radius
             minDistance = distance;
             nearestWorm = worm;
         }
