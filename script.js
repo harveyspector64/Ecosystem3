@@ -25,11 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
         const element = document.getElementById(item.id);
-        if (item.disabled) {
-            element.classList.add('disabled');
-            element.setAttribute('draggable', 'false');
+        if (element) {  // Add null check
+            if (item.disabled) {
+                element.classList.add('disabled');
+                element.setAttribute('draggable', 'false');
+            } else {
+                element.setAttribute('draggable', 'true');
+            }
         } else {
-            element.setAttribute('draggable', 'true');
+            console.error(`Element with ID ${item.id} not found`);
         }
     });
 
@@ -249,5 +253,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
-    window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
+    window.addWormToPanelWhenFirstBirdLands = function() {
+        if (!firstBirdLanded) {
+            firstBirdLanded = true;
+            addEmojiToPanel(EMOJIS.WORM, 'worm');
+        }
+    };
+
+    function addEmojiToPanel(emoji, id) {
+        const emojiElement = document.createElement('div');
+        emojiElement.id = id;
+        emojiElement.classList.add('emoji');
+        emojiElement.textContent = emoji;
+        emojiElement.setAttribute('draggable', 'true');
+
+        emojiElement.addEventListener('dragstart', (e) => {
+            const draggedElement = e.target;
+            if (!draggedElement.classList.contains('emoji')) return;
+
+            draggedEmoji = draggedElement.textContent;
+            console.log(`Drag start: ${draggedEmoji}`);
+        });
+
+        sidebar.appendChild(emojiElement);
+        console.log(`${id} added to sidebar`);
+    }
+
+    window.addBird = function(x, y, playArea) {
+        const delay = Math.random() * 8000 + 4000;
+
+        setTimeout(() => {
+            const birdElement = document.createElement('div');
+            birdElement.textContent = EMOJIS.BIRD;
+            birdElement.classList.add('emoji', 'bird');
+            birdElement.style.position = 'absolute';
+            birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
+            birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
+            birdElement.style.zIndex = '1';
+            playArea.appendChild(birdElement);
+
+            birdElement.hunger = 100;
+            setState(birdElement, birdStates.FLYING);
+            birdFlightPattern(birdElement, playArea, false);
+        }, delay);
+    };
 });
