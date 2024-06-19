@@ -124,8 +124,14 @@ function birdLandingDecision(bird, playArea) {
         console.log('Bird hunger between 30 and 60, actively searching for food.');
         birdFlightPattern(bird, playArea, true);
     } else {
-        console.log('Bird hunger above 70, flying to a tree to perch.');
-        birdFlyToTree(bird, playArea);
+        // Adding randomness to decision making
+        if (Math.random() < 0.7) {
+            console.log('Bird hunger above 70, flying to a tree to perch.');
+            birdFlyToTree(bird, playArea);
+        } else {
+            console.log('Bird hunger above 70, continuing to fly.');
+            birdFlightPattern(bird, playArea, false);
+        }
     }
 }
 
@@ -204,7 +210,7 @@ function birdLandOnTree(bird, treeX, treeY, playArea) {
         const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
         setTimeout(() => {
             console.log('Bird has roosted. Resuming flight.');
-            birdFlightPattern(bird, playArea, false);
+            birdAscendAndFlight(bird, playArea);
         }, roostTime);
     }, 500); // Short delay to simulate smooth landing
 }
