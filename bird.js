@@ -79,6 +79,62 @@ function birdLandingDecision(bird, playArea) {
     }
 }
 
+function birdFlyToTree(bird, playArea) {
+    console.log('Bird flying to tree.');
+
+    setState(bird, birdStates.FLYING);
+
+    const tree = getNearestTree(bird);
+    if (tree) {
+        const treeX = parseFloat(tree.style.left);
+        const treeY = parseFloat(tree.style.top);
+
+        const flyInterval = setInterval(() => {
+            if (bird.currentState !== birdStates.FLYING) {
+                clearInterval(flyInterval);
+                return;
+            }
+
+            const currentX = parseFloat(bird.style.left);
+            const currentY = parseFloat(bird.style.top);
+            const dx = treeX - currentX;
+            const dy = treeY - currentY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 10) {
+                clearInterval(flyInterval);
+                birdLandOnTree(bird, treeX, treeY, playArea);
+            } else {
+                const angle = Math.atan2(dy, dx);
+                const speed = 5;
+                const newX = currentX + speed * Math.cos(angle);
+                const newY = currentY + speed * Math.sin(angle);
+                bird.style.left = `${newX}px`;
+                bird.style.top = `${newY}px`;
+            }
+        }, 100);
+    }
+}
+
+function birdLandOnTree(bird, treeX, treeY, playArea) {
+    console.log(`Bird landing on a tree at: ${treeX}, ${treeY}`);
+
+    setState(bird, birdStates.LANDING);
+
+    setTimeout(() => {
+        bird.style.left = `${treeX + Math.random() * 60 - 30}px`;
+        bird.style.top = `${treeY + Math.random() * 80 - 40}px`;
+
+        console.log(`Bird landed on tree at ${bird.style.left} ${bird.style.top}`);
+
+        const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
+        setTimeout(() => {
+            console.log('Bird has roosted. Resuming flight.');
+            birdFlightPattern(bird, playArea, false);
+        }, roostTime);
+    }, 500); // Short delay to simulate smooth landing
+}
+
 function birdDescendToGround(bird, playArea) {
     console.log('Bird descending to land on the ground.');
 
