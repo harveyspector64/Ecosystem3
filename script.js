@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
-    // Expose addWormToPanel globally
+    // Expose functions globally
     window.addWormToPanelWhenFirstBirdLands = addWormToPanelWhenFirstBirdLands;
     window.addButterflies = addButterflies;
     window.addBird = addBird;
