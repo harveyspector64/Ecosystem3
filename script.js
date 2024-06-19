@@ -59,7 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         if (isDragging && draggedEmoji) {
             // Desktop drag handling
-            console.log('Drag over play area (desktop)'); 
+            if (Date.now() % 1000 < 20) { // Reduce log frequency
+                console.log('Drag over play area (desktop)');
+            }
         }
     });
 
@@ -70,6 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const touch = e.touches[0];
             draggingVisual.style.left = `${touch.clientX - offsetX}px`;
             draggingVisual.style.top = `${touch.clientY - offsetY}px`;
+
+            if (Date.now() % 1000 < 20) { // Reduce log frequency
+                console.log('Touch move over play area');
+            }
         }
     });
 
@@ -99,6 +105,21 @@ document.addEventListener('DOMContentLoaded', () => {
             isDragging = false; 
         }
     });
+
+    function handleTouchEnd(e) {
+        e.preventDefault();
+        if (isDragging && draggedEmoji && draggingVisual) {
+            // Mobile drop handling
+            const touch = e.changedTouches[0];
+            const x = touch.clientX - playArea.offsetLeft - offsetX;
+            const y = touch.clientY - playArea.offsetTop - offsetY;
+            placeEmoji(draggedEmoji, x, y);
+
+            draggingVisual.remove();
+            draggingVisual = null;
+            isDragging = false; 
+        }
+    }
 
     // Function to place emoji (desktop and mobile)
     function placeEmoji(emoji, x, y) {
@@ -304,3 +325,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Expose addWormToPanel globally
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
 });
+
