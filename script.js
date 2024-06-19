@@ -2,25 +2,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const sidebar = document.getElementById('sidebar');
     let draggedEmoji = null;
-    let draggingVisual = null;
-    let isDragging = false;
+    let draggingVisual = null; // For visual feedback (mobile only)
+    let isDragging = false; // Flag to track dragging state
     let offsetX = 0;
     let offsetY = 0;
-    let firstBirdLanded = false;
 
     // Initialize emojis in the sidebar
     INITIAL_EMOJIS.forEach(item => {
         const element = document.getElementById(item.id);
-        if (element) {
-            if (item.disabled) {
-                element.classList.add('disabled');
-                element.setAttribute('draggable', 'false');
-            } else {
-                element.setAttribute('draggable', 'true');
-            }
+        if (item.disabled) {
+            element.classList.add('disabled');
+            element.setAttribute('draggable', 'false');
+        } else {
+            element.setAttribute('draggable', 'true');
         }
     });
 
+    // Add both dragstart and touchstart listeners
     sidebar.addEventListener('dragstart', handleDragStart);
     sidebar.addEventListener('touchstart', handleTouchStart);
 
@@ -45,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         offsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
         console.log(`Touch start: ${draggedEmoji}`);
 
+        // Create visual feedback for mobile
         draggingVisual = createDraggingVisual(draggedEmoji);
         draggingVisual.style.left = `${touch.clientX - offsetX}px`;
         draggingVisual.style.top = `${touch.clientY - offsetY}px`;
@@ -53,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
     }
 
+    // Unified drag handling
     playArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji) {
@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Unified drop handling
     playArea.addEventListener('drop', (e) => {
         e.preventDefault();
         if (isDragging && draggedEmoji) {
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Function to place emoji (desktop and mobile)
     function placeEmoji(emoji, x, y) {
         console.log(`Placing emoji: ${emoji} at (${x}, ${y})`);
         if (emoji === EMOJIS.WORM) {
@@ -106,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emojiElement = document.createElement('div');
         emojiElement.textContent = emoji;
 
+        // Apply specific classes for styling
         if (emoji === EMOJIS.TREE) {
             emojiElement.classList.add('emoji', 'tree');
         } else if (emoji === EMOJIS.BUTTERFLY) {
@@ -125,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`Added ${emoji} to play area at (${x}, ${y})`);
 
+        // Additional logic for specific emojis
         if (emoji === EMOJIS.BUSH) {
             addButterflies(x, y, playArea);
             unlockTree();
@@ -135,69 +139,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function unlockTree() {
         const tree = document.getElementById('tree');
-        if (tree) {
-            tree.classList.remove('disabled');
-            tree.setAttribute('draggable', 'true');
+        tree.classList.remove('disabled');
+        tree.setAttribute('draggable', 'true');
+    }
+
+    function addButterflies(x, y, playArea) {
+        const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
+        for (let i = 0; i < numButterflies; i++) {
+            setTimeout(() => createButterfly(x, y, playArea), getRandomTime(10, 20) * 1000);
         }
     }
 
-    function addWorm(x, y) {
-        const wormElement = document.createElement('div');
-        wormElement.textContent = EMOJIS.WORM;
-        wormElement.classList.add('emoji', 'worm');
-        wormElement.style.position = 'absolute';
-        wormElement.style.left = `${x}px`;
-        wormElement.style.top = `${y}px`;
-        playArea.appendChild(wormElement);
+    function createButterfly(targetX, targetY, playArea) {
+        const butterflyElement = document.createElement('div');
+        butterflyElement.textContent = EMOJIS.BUTTERFLY;
+        butterflyElement.classList.add('emoji', 'butterfly');
+        butterflyElement.style.position = 'absolute';
+        butterflyElement.style.left = getRandomEdgePosition('x', playArea) + 'px';
+        butterflyElement.style.top = getRandomEdgePosition('y', playArea) + 'px';
+        playArea.appendChild(butterflyElement);
+
+        butterflyElement.hunger = 100; // Initialize hunger bar
+        moveButterfly(butterflyElement, targetX, targetY, playArea);
     }
 
-    function addWormToPanelWhenFirstBirdLands() {
-        if (!firstBirdLanded) {
-            firstBirdLanded = true;
-            addEmojiToPanel(EMOJIS.WORM, 'worm');
-        }
+    function moveButterfly(butterfly, targetX, targetY, playArea) {
+        const interval = setInterval(() => {
+            const currentX = parseFloat(butterfly.style.left);
+            const currentY = parseFloat(butterfly.style.top);
+
+            const angle = Math.random() * Math.PI * 2; // Random angle
+            const distance = Math.random() * 20 + 30; // Smaller distance for smoother movement
+
+            const newX = currentX + distance * Math.cos(angle);
+            const newY = currentY + distance * Math.sin(angle);
+
+            butterfly.style.left = `${newX}px`;
+            butterfly.style.top = `${newY}px`;
+
+            butterfly.hunger -= 1; // Decrease hunger over time
+
+            if (butterfly.hunger <= 0) {
+                clearInterval(interval);
+                butterflyLand(butterfly, targetX, targetY, playArea);
+            }
+        }, 300); // Slower interval for smoother, less jerky movement
     }
 
-    function addBird(x, y, playArea) {
-        const delay = Math.random() * 8000 + 4000;
-        console.log(`Spawning bird after delay: ${delay}`);
+    function butterflyLand(butterfly, targetX, targetY, playArea) {
+        const bushes = document.querySelectorAll('.emoji');
+        let nearestBush = null;
+        let minDistance = Infinity;
 
-        setTimeout(() => {
-            const birdElement = document.createElement('div');
-            birdElement.textContent = EMOJIS.BIRD;
-            birdElement.classList.add('emoji', 'bird');
-            birdElement.style.position = 'absolute';
-            birdElement.style.left = `${Math.random() * playArea.clientWidth}px`;
-            birdElement.style.top = `${Math.random() * playArea.clientHeight}px`;
-            birdElement.style.zIndex = '1';
-            playArea.appendChild(birdElement);
+        bushes.forEach(bush => {
+            if (bush.textContent === EMOJIS.BUSH) {
+                const bushX = parseFloat(bush.style.left);
+                const bushY = parseFloat(bush.style.top);
+                const distance = Math.sqrt((bushX - targetX) ** 2 + (bushY - targetY) ** 2);
 
-            birdElement.hunger = 100;
-            setState(birdElement, birdStates.FLYING);
-            console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
-
-            birdFlightPattern(birdElement, playArea, false);
-        }, delay);
-    }
-
-    function addEmojiToPanel(emoji, id) {
-        const emojiElement = document.createElement('div');
-        emojiElement.id = id;
-        emojiElement.classList.add('emoji');
-        emojiElement.textContent = emoji;
-        emojiElement.setAttribute('draggable', 'true');
-
-        emojiElement.addEventListener('dragstart', (e) => {
-            const draggedElement = e.target;
-            if (!draggedElement.classList.contains('emoji')) return;
-
-            draggedEmoji = draggedElement.textContent;
-            console.log(`Drag start: ${draggedEmoji}`);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestBush = bush;
+                }
+            }
         });
 
-        sidebar.appendChild(emojiElement);
-        console.log(`${id} added to sidebar`);
+        if (nearestBush) {
+            butterfly.style.left = nearestBush.style.left;
+            butterfly.style.top = nearestBush.style.top;
+
+            setTimeout(() => {
+                butterfly.hunger = 100; // Reset hunger
+                moveButterfly(butterfly, parseFloat(nearestBush.style.left), parseFloat(nearestBush.style.top), playArea);
+            }, getRandomTime(5, 10) * 1000);
+        }
     }
 
+    function getRandomEdgePosition(axis, playArea) {
+        if (axis === 'x') {
+            return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20; // Adjust 20 for margin
+        } else {
+            return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
+        }
+    }
+
+    function getRandomTime(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    // Expose addWormToPanel globally
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
 });
