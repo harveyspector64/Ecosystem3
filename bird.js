@@ -68,6 +68,7 @@ function birdFlightPattern(bird, playArea, isErratic) {
 
         bird.hunger -= isErratic ? 1 : 0.5;
 
+        detectButterflies(bird, playArea);
         detectWorms(bird, playArea);
 
         if (newX <= 0 || newX >= playArea.clientWidth || newY <= 0 || newY >= playArea.clientHeight) {
@@ -136,6 +137,8 @@ function birdFlyToTree(bird, playArea) {
     if (tree) {
         const treeX = parseFloat(tree.style.left);
         const treeY = parseFloat(tree.style.top);
+
+        console.log(`Tree found at: ${treeX}, ${treeY}`);
 
         const flyInterval = setInterval(() => {
             if (bird.currentState !== birdStates.FLYING) {
@@ -337,6 +340,21 @@ function detectWorms(bird, playArea) {
     } else {
         birdAscendAndFlight(bird, playArea);
     }
+}
+
+function detectButterflies(bird, playArea) {
+    const butterflies = document.querySelectorAll('.butterfly');
+    butterflies.forEach(butterfly => {
+        const butterflyRect = butterfly.getBoundingClientRect();
+        const birdRect = bird.getBoundingClientRect();
+        const distance = Math.sqrt((birdRect.left - butterflyRect.left) ** 2 + (birdRect.top - butterflyRect.top) ** 2);
+
+        if (distance < 10) {
+            butterfly.remove();
+            bird.hunger = Math.min(bird.hunger + 5, 100);
+            console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
+        }
+    });
 }
 
 function birdAscendAndFlight(bird, playArea) {
