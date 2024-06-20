@@ -1,5 +1,6 @@
 // Global cached elements
 window.cachedElements = {};
+window.butterflies = [];
 
 // Wrap the entire game in an Immediately Invoked Function Expression (IIFE)
 (function() {
@@ -39,31 +40,125 @@ window.cachedElements = {};
     let draggedElement = null;
     let firstBirdLanded = false;
 
-    // Utility functions
-    function getRandomTime(min, max) {
-        return Math.random() * (max - min) + min;
-    }
+    // Butterfly class
+    class Butterfly {
+        constructor(element, homeBush) {
+            this.element = element;
+            this.homeBush = homeBush;
+            this.state = 'flying';
+            this.carriesPollen = false;
+            this.pollenSource = null;
+            this.setPosition(this.getRandomPositionAroundBush(homeBush));
+        }
 
-    function getRandomEdgePosition(axis) {
-        if (axis === 'x') {
-            return Math.random() > 0.5 ? 0 : window.cachedElements.playArea.clientWidth - 20;
-        } else {
-            return Math.random() > 0.5 ? 0 : window.cachedElements.playArea.clientHeight - 20;
+        setPosition(position) {
+            this.element.style.left = `${position.x}px`;
+            this.element.style.top = `${position.y}px`;
+        }
+
+        getPosition() {
+            return {
+                x: parseFloat(this.element.style.left),
+                y: parseFloat(this.element.style.top)
+            };
+        }
+
+        getRandomPositionAroundBush(bush) {
+            const bushPosition = getBushPosition(bush);
+            const angle = Math.random() * 2 * Math.PI;
+            const radius = Math.random() * 100 + 50; // 50-150px radius
+            return {
+                x: bushPosition.x + radius * Math.cos(angle),
+                y: bushPosition.y + radius * Math.sin(angle)
+            };
+        }
+
+        move() {
+            if (this.state === 'resting') {
+                if (Math.random() < 0.1) { // 10% chance to start flying again
+                    this.state = 'flying';
+                } else {
+                    return; // Stay resting
+                }
+            }
+
+            let targetPosition;
+            if (Math.random() < 0.8) { // 80% chance to stay around home bush
+                targetPosition = this.getRandomPositionAroundBush(this.homeBush);
+            } else { // 20% chance to explore
+                const nearbyBush = this.findNearbyBush();
+                if (nearbyBush) {
+                    targetPosition = this.getRandomPositionAroundBush(nearbyBush);
+                    this.visitBush(nearbyBush);
+                } else {
+                    targetPosition = this.getRandomPositionInPlay();
+                }
+            }
+
+            const currentPosition = this.getPosition();
+            const dx = targetPosition.x - currentPosition.x;
+            const dy = targetPosition.y - currentPosition.y;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+
+            if (distance < 5) { // Close enough to target, consider resting
+                if (Math.random() < 0.3) { // 30% chance to rest
+                    this.state = 'resting';
+                    this.setPosition(targetPosition);
+                }
+            } else {
+                const speed = 2;
+                const newX = currentPosition.x + (dx / distance) * speed;
+                const newY = currentPosition.y + (dy / distance) * speed;
+                this.setPosition({x: newX, y: newY});
+            }
+
+            // Add some randomness to the movement
+            this.setPosition({
+                x: parseFloat(this.element.style.left) + (Math.random() - 0.5) * 2,
+                y: parseFloat(this.element.style.top) + (Math.random() - 0.5) * 2
+            });
+        }
+
+        findNearbyBush() {
+            const bushes = Array.from(document.querySelectorAll('.emoji.bush'));
+            const currentPosition = this.getPosition();
+            for (let bush of bushes) {
+                if (bush !== this.homeBush) {
+                    const bushPosition = getBushPosition(bush);
+                    const distance = getDistance(currentPosition, bushPosition);
+                    if (distance < 200) { // Detection radius
+                        return bush;
+                    }
+                }
+            }
+            return null;
+        }
+
+        visitBush(bush) {
+            if (this.carriesPollen && bush !== this.pollenSource) {
+                this.pollinate(bush);
+            }
+            this.carriesPollen = true;
+            this.pollenSource = bush;
+        }
+
+        pollinate(bush) {
+            if (Math.random() < 0.1) { // 10% chance of successful pollination
+                createNewFlowerBush(bush);
+            }
+            this.carriesPollen = false;
+            this.pollenSource = null;
+        }
+
+        getRandomPositionInPlay() {
+            return {
+                x: Math.random() * (window.cachedElements.playArea.clientWidth - 20),
+                y: Math.random() * (window.cachedElements.playArea.clientHeight - 20)
+            };
         }
     }
 
-    function getEmojiName(emoji) {
-        switch(emoji) {
-            case EMOJIS.BUSH: return 'bush';
-            case EMOJIS.TREE: return 'tree';
-            case EMOJIS.BUTTERFLY: return 'butterfly';
-            case EMOJIS.BIRD: return 'bird';
-            case EMOJIS.WORM: return 'worm';
-            default: return 'creature';
-        }
-    }
-
-    // Butterfly object pool
+    // Butterfly pool
     const butterflyPool = {
         pool: [],
         maxSize: 50,
@@ -88,6 +183,43 @@ window.cachedElements = {};
             }
         }
     };
+
+    // Utility functions
+    function getRandomTime(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function getRandomEdgePosition(axis) {
+        if (axis === 'x') {
+            return Math.random() > 0.5 ? 0 : window.cachedElements.playArea.clientWidth - 20;
+        } else {
+            return Math.random() > 0.5 ? 0 : window.cachedElements.playArea.clientHeight - 20;
+        }
+    }
+
+    function getBushPosition(bush) {
+        return {
+            x: parseFloat(bush.style.left),
+            y: parseFloat(bush.style.top)
+        };
+    }
+
+    function getDistance(pos1, pos2) {
+        const dx = pos1.x - pos2.x;
+        const dy = pos1.y - pos2.y;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    function getEmojiName(emoji) {
+        switch(emoji) {
+            case EMOJIS.BUSH: return 'bush';
+            case EMOJIS.TREE: return 'tree';
+            case EMOJIS.BUTTERFLY: return 'butterfly';
+            case EMOJIS.BIRD: return 'bird';
+            case EMOJIS.WORM: return 'worm';
+            default: return 'creature';
+        }
+    }
 
     // Event handling functions
     function handleDragStart(e) {
@@ -206,7 +338,7 @@ window.cachedElements = {};
         console.log(`Added ${emoji} to play area at (${x}, ${y})`);
 
         if (emoji === EMOJIS.BUSH) {
-            addButterflies(x, y);
+            addButterflies(emojiElement);
             unlockTree();
         } else if (emoji === EMOJIS.TREE) {
             addBird(x, y);
@@ -222,151 +354,38 @@ window.cachedElements = {};
         window.cachedElements.tree.setAttribute('draggable', 'true');
     }
 
-    function addButterflies(x, y) {
+    function createButterfly(bush) {
+        const butterflyElement = butterflyPool.get();
+        butterflyElement.style.position = 'absolute';
+        const butterfly = new Butterfly(butterflyElement, bush);
+        window.cachedElements.playArea.appendChild(butterflyElement);
+        return butterfly;
+    }
+
+    function addButterflies(bush) {
         const numButterflies = Math.floor(Math.random() * 2) + 1;
+        const newButterflies = [];
         for (let i = 0; i < numButterflies; i++) {
-            setTimeout(() => createButterfly(x, y), getRandomTime(10, 20) * 1000);
+            newButterflies.push(createButterfly(bush));
         }
+        window.butterflies = window.butterflies.concat(newButterflies);
+        addEventLogMessage(`${numButterflies} new butterflies have appeared!`);
     }
 
-function moveButterfly(butterfly) {
-    const states = {
-        EXPLORING: 'exploring',
-        HOVERING: 'hovering',
-        ATTRACTED: 'attracted',
-        RESTING: 'resting'
-    };
-
-    let currentState = states.EXPLORING;
-    let direction = Math.random() * Math.PI * 2;
-    let stateTimer = 0;
-    let attractedTo = null;
-
-    function updateState() {
-        stateTimer--;
-        if (stateTimer <= 0) {
-            switch (currentState) {
-                case states.EXPLORING:
-                    currentState = Math.random() < 0.3 ? states.HOVERING : states.EXPLORING;
-                    stateTimer = currentState === states.HOVERING ? getRandomTime(3, 7) * 10 : getRandomTime(10, 20) * 10;
-                    break;
-                case states.HOVERING:
-                    currentState = states.EXPLORING;
-                    stateTimer = getRandomTime(10, 20) * 10;
-                    break;
-                case states.ATTRACTED:
-                    if (!attractedTo) {
-                        currentState = states.EXPLORING;
-                        stateTimer = getRandomTime(10, 20) * 10;
-                    }
-                    break;
-                case states.RESTING:
-                    currentState = Math.random() < 0.7 ? states.EXPLORING : states.HOVERING;
-                    stateTimer = getRandomTime(5, 15) * 10;
-                    break;
-            }
-        }
+    function createNewFlowerBush(nearBush) {
+        const bushPosition = getBushPosition(nearBush);
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = Math.random() * 100 + 50; // 50-150px away
+        const newPosition = {
+            x: bushPosition.x + distance * Math.cos(angle),
+            y: bushPosition.y + distance * Math.sin(angle)
+        };
+        addEmojiToPlayArea(EMOJIS.BUSH, newPosition.x, newPosition.y);
+        addEventLogMessage("A new flower bush has grown from pollination!");
     }
 
-    function move() {
-        const currentX = parseFloat(butterfly.style.left);
-        const currentY = parseFloat(butterfly.style.top);
-        let newX, newY, speed;
-
-        switch (currentState) {
-            case states.EXPLORING:
-                speed = 2;
-                direction += (Math.random() - 0.5) * 0.5; // Slight direction change
-                newX = currentX + Math.cos(direction) * speed;
-                newY = currentY + Math.sin(direction) * speed;
-                break;
-            case states.HOVERING:
-                speed = 0.5;
-                newX = currentX + (Math.random() - 0.5) * speed;
-                newY = currentY + (Math.random() - 0.5) * speed;
-                break;
-            case states.ATTRACTED:
-                speed = 1;
-                const attractedX = parseFloat(attractedTo.style.left);
-                const attractedY = parseFloat(attractedTo.style.top);
-                const dx = attractedX - currentX;
-                const dy = attractedY - currentY;
-                const distance = Math.sqrt(dx*dx + dy*dy);
-                if (distance < 5) {
-                    currentState = states.RESTING;
-                    stateTimer = getRandomTime(10, 30) * 10;
-                    newX = attractedX;
-                    newY = attractedY;
-                } else {
-                    newX = currentX + (dx / distance) * speed;
-                    newY = currentY + (dy / distance) * speed;
-                }
-                break;
-            case states.RESTING:
-                newX = currentX;
-                newY = currentY;
-                break;
-        }
-
-        // Boundary check
-        const maxX = window.cachedElements.playArea.clientWidth - 20;
-        const maxY = window.cachedElements.playArea.clientHeight - 20;
-        if (newX <= 0 || newX >= maxX || newY <= 0 || newY >= maxY) {
-            direction = Math.atan2(maxY/2 - currentY, maxX/2 - currentX);
-            newX = Math.max(0, Math.min(newX, maxX));
-            newY = Math.max(0, Math.min(newY, maxY));
-        }
-
-        butterfly.style.left = `${newX}px`;
-        butterfly.style.top = `${newY}px`;
-
-        // Check for nearby flower bushes
-        if (currentState !== states.RESTING && Math.random() < 0.1) {
-            const nearbyBush = findNearbyBush(newX, newY);
-            if (nearbyBush) {
-                currentState = states.ATTRACTED;
-                attractedTo = nearbyBush;
-                stateTimer = getRandomTime(5, 10) * 10;
-            }
-        }
-    }
-
-    function findNearbyBush(x, y) {
-        const bushes = document.querySelectorAll('.emoji.bush');
-        for (let bush of bushes) {
-            const bushX = parseFloat(bush.style.left);
-            const bushY = parseFloat(bush.style.top);
-            const distance = Math.sqrt((x - bushX)**2 + (y - bushY)**2);
-            if (distance < 100) { // Detection radius
-                return bush;
-            }
-        }
-        return null;
-    }
-
-    function animate() {
-        updateState();
-        move();
-        requestAnimationFrame(animate);
-    }
-
-    animate();
-}
-
-function createButterfly(targetX, targetY) {
-    const butterflyElement = butterflyPool.get();
-    butterflyElement.style.position = 'absolute';
-    butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
-    butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
-    window.cachedElements.playArea.appendChild(butterflyElement);
-
-    moveButterfly(butterflyElement);
-
-    addEventLogMessage('A new butterfly has appeared!');
-}
-
-    function addEventLogMessage(message) {
-        const eventMenu = document.getElementById('event-menu');
+ function addEventLogMessage(message) {
+        const eventMenu = window.cachedElements.eventMenu;
         if (!eventMenu) {
             console.error('Event menu not found');
             return;
@@ -388,7 +407,7 @@ function createButterfly(targetX, targetY) {
 
     // Update functions
     function updateButterflies() {
-        // This function is now empty as individual butterflies are animated in moveButterfly
+        window.butterflies.forEach(butterfly => butterfly.move());
     }
 
     function updateBirds() {
