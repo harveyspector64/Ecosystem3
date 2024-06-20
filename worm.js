@@ -32,3 +32,6 @@ function startWormWiggle(worm) {
     // Initial delay before the first wiggle
     setTimeout(wiggle, Math.random() * 3000 + 2000);
 }
+
+// Make the startWormWiggle function globally accessible
+window.startWormWiggle = startWormWiggle;
