@@ -24,15 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Drag start: ${draggedEmoji}`);
     });
 
-    // Add touch event listeners
-    sidebar.addEventListener('touchstart', (e) => {
-        const touchedElement = e.target;
-        if (!touchedElement.classList.contains('emoji')) return;
-
-        draggedEmoji = touchedElement.textContent;
-        console.log(`Touch start: ${draggedEmoji}`);
-    });
-
     // Ensure the worm is correctly added to the sidebar with event listeners
     function addEmojiToPanel(emoji, id) {
         const emojiElement = document.createElement('div');
@@ -48,14 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             draggedEmoji = draggedElement.textContent;
             console.log(`Drag start: ${draggedEmoji}`);
-        });
-
-        emojiElement.addEventListener('touchstart', (e) => {
-            const touchedElement = e.target;
-            if (!touchedElement.classList.contains('emoji')) return;
-
-            draggedEmoji = touchedElement.textContent;
-            console.log(`Touch start: ${draggedEmoji}`);
         });
 
         sidebar.appendChild(emojiElement);
@@ -105,28 +88,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle touchmove and touchend events for mobile
-    playArea.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        if (draggedEmoji) {
-            const touch = e.touches[0];
-            const x = touch.clientX - playArea.offsetLeft;
-            const y = touch.clientY - playArea.offsetTop;
-            console.log(`Touch move: ${draggedEmoji} to (${x}, ${y})`);
-        }
-    });
-
+    // Handle touch end event for mobile
     playArea.addEventListener('touchend', (e) => {
         if (draggedEmoji) {
             const touch = e.changedTouches[0];
             const x = touch.clientX - playArea.offsetLeft;
             const y = touch.clientY - playArea.offsetTop;
             console.log(`Touch end: ${draggedEmoji} at (${x}, ${y})`);
-            if (draggedEmoji === EMOJIS.WORM) {
-                addWorm(x, y);
-            } else {
-                addEmojiToPlayArea(draggedEmoji, x, y, playArea);
-            }
+            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
         } else {
             console.log('No dragged emoji');
