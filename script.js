@@ -1,3 +1,6 @@
+// At the top of your script.js file, outside the IIFE
+window.cachedElements = {};
+
 // Wrap the entire game in an Immediately Invoked Function Expression (IIFE)
 (function() {
     // Performance monitor
