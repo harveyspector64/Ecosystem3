@@ -48,6 +48,7 @@ function addBird(x, y, playArea) {
         playArea.appendChild(birdElement);
 
         birdElement.hunger = 100; // Initialize hunger
+        birdElement.foodConsumed = 0; // Initialize food consumed counter
         setState(birdElement, birdStates.FLYING);
         console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
         
@@ -345,6 +346,7 @@ function eatWorm(bird, worm) {
     setTimeout(() => {
         worm.remove();
         bird.hunger = Math.min(bird.hunger + 20, 100);
+        bird.foodConsumed = (bird.foodConsumed || 0) + 20; // Track food consumption
 
         logEvent(`Bird ${bird.id} ate a worm.`);
 
@@ -354,6 +356,8 @@ function eatWorm(bird, worm) {
             setState(bird, birdStates.WALKING);
             birdWalkingPattern(bird, playArea);
         }
+
+        checkForNestCreation(bird); // Check for nest creation after eating
     }, 200); // Short delay for smoother animation
 }
 
@@ -394,8 +398,11 @@ function detectButterflies(bird, playArea) {
                 birdRect.bottom > butterflyRect.top) {
                     butterfly.remove();
                     bird.hunger = Math.min(bird.hunger + 5, 100);
+                    bird.foodConsumed = (bird.foodConsumed || 0) + 5; // Track food consumption
                     console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
                     logEvent(`Bird ${bird.id} ate a butterfly.`);
+
+                    checkForNestCreation(bird); // Check for nest creation after eating
             }
         });
     }
@@ -432,6 +439,45 @@ function getNearestTree(bird) {
     });
 
     return nearestTree;
+}
+
+function checkForNestCreation(bird) {
+    if (bird.foodConsumed >= 200) {
+        const tree = getNearestTree(bird);
+        if (tree) {
+            createNestInTree(tree);
+            bird.foodConsumed = 0; // Reset food count after creating nest
+        }
+    }
+}
+
+function createNestInTree(tree) {
+    console.log('Creating nest in tree.');
+
+    const nestElement = document.createElement('div');
+    nestElement.textContent = '🥚'; // Nest with eggs emoji
+    nestElement.classList.add('emoji', 'nest');
+    nestElement.style.position = 'absolute';
+    nestElement.style.left = tree.style.left;
+    nestElement.style.top = `${parseFloat(tree.style.top) - 30}px`; // Place nest slightly above the tree
+    tree.appendChild(nestElement);
+
+    // Set timer for nest to hatch
+    const hatchTime = Math.random() * 60000 + 120000; // 2-3 minutes
+    setTimeout(() => hatchNest(nestElement), hatchTime);
+}
+
+function hatchNest(nestElement) {
+    console.log('Hatching nest.');
+
+    nestElement.remove();
+
+    const playArea = document.getElementById('play-area');
+    for (let i = 0; i < 3; i++) {
+        const x = Math.random() * playArea.clientWidth;
+        const y = Math.random() * playArea.clientHeight;
+        addBird(x, y, playArea);
+    }
 }
 
 function addWormToPanel() {
