@@ -1,228 +1,387 @@
-class Butterfly {
-    // ... (previous code remains the same)
+// Global cached elements
+window.cachedElements = {};
+window.butterflies = [];
+window.birds = [];
 
-    move() {
-        if (this.state === 'resting') {
-            if (Math.random() < 0.05) {
-                this.state = 'flying';
-            } else {
-                return;
+// Wrap the entire game in an Immediately Invoked Function Expression (IIFE)
+(function() {
+    // Performance monitor
+    const performanceMonitor = {
+        frameCount: 0,
+        lastTime: performance.now(),
+        fps: 0,
+        lastLogTime: 0,
+
+        update: function(currentTime) {
+            this.frameCount++;
+            if (currentTime - this.lastTime >= 1000) {
+                this.fps = this.frameCount;
+                this.frameCount = 0;
+                this.lastTime = currentTime;
+                
+                if (currentTime - this.lastLogTime >= 5000) {
+                    console.log(`%cCurrent FPS: ${this.fps}`, 'color: green; font-weight: bold;');
+                    this.lastLogTime = currentTime;
+                }
             }
         }
+    };
 
-        const currentPosition = this.getPosition();
-        let targetPosition;
+    // Initialize cached elements
+    window.cachedElements = {
+        playArea: null,
+        emojiPanel: null,
+        eventMenu: null,
+        tree: null
+    };
 
-        if (Math.random() < 0.7) {
-            targetPosition = this.getRandomPositionAroundBush(this.homeBush);
-        } else {
-            targetPosition = this.getRandomPositionInPlay();
+    // Game state
+    let selectedEmoji = null;
+    let draggedElement = null;
+    let firstBirdLanded = false;
+
+    // Utility functions
+    function getRandomTime(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function getRandomEdgePosition() {
+        const playArea = window.cachedElements.playArea;
+        const edge = Math.floor(Math.random() * 4);
+        switch (edge) {
+            case 0: // Top
+                return {x: Math.random() * playArea.clientWidth, y: -20};
+            case 1: // Right
+                return {x: playArea.clientWidth + 20, y: Math.random() * playArea.clientHeight};
+            case 2: // Bottom
+                return {x: Math.random() * playArea.clientWidth, y: playArea.clientHeight + 20};
+            case 3: // Left
+                return {x: -20, y: Math.random() * playArea.clientHeight};
         }
-
-        this.flightAngle += (Math.random() - 0.5) * 0.3;  // Reduced angle change
-
-        const newX = currentPosition.x + Math.cos(this.flightAngle) * this.flightSpeed;
-        const newY = currentPosition.y + Math.sin(this.flightAngle) * this.flightSpeed;
-
-        // Smooth transition to new position
-        this.element.style.transition = 'left 0.5s, top 0.5s';
-        this.setPosition({x: newX, y: newY});
-
-        this.checkForPollination();
     }
 
-    // ... (rest of the Butterfly class remains the same)
-}
-
-class Bird {
-    constructor(element) {
-        this.element = element;
-        this.hunger = 100;
-        this.foodConsumed = 0;
-        this.state = 'flying';
-        this.flightAngle = Math.random() * Math.PI * 2;
-        this.flightSpeed = 1 + Math.random() * 0.5;
-        this.setPosition(getRandomEdgePosition());
-    }
-
-    setPosition(position) {
-        this.element.style.left = `${position.x}px`;
-        this.element.style.top = `${position.y}px`;
-    }
-
-    getPosition() {
+    function getBushPosition(bush) {
         return {
-            x: parseFloat(this.element.style.left),
-            y: parseFloat(this.element.style.top)
+            x: parseFloat(bush.style.left),
+            y: parseFloat(bush.style.top)
         };
     }
 
-    move() {
-        const currentPosition = this.getPosition();
-        let targetPosition;
+    function getDistance(pos1, pos2) {
+        const dx = pos1.x - pos2.x;
+        const dy = pos1.y - pos2.y;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
 
-        if (this.hunger < 50) {
-            targetPosition = this.findNearestFood();
-        } else {
-            targetPosition = this.getRandomPositionInPlay();
+    function getEmojiName(emoji) {
+        switch(emoji) {
+            case EMOJIS.BUSH: return 'bush';
+            case EMOJIS.TREE: return 'tree';
+            case EMOJIS.BUTTERFLY: return 'butterfly';
+            case EMOJIS.BIRD: return 'bird';
+            case EMOJIS.WORM: return 'worm';
+            default: return 'creature';
+        }
+    }
+
+    // Butterfly class
+    class Butterfly {
+        constructor(element, homeBush) {
+            this.element = element;
+            this.homeBush = homeBush;
+            this.state = 'flying';
+            this.carriesPollen = false;
+            this.pollenSource = null;
+            this.flightAngle = Math.random() * Math.PI * 2;
+            this.flightSpeed = 0.5 + Math.random() * 0.5;
+            this.setPosition(this.getRandomPositionAroundBush(homeBush));
         }
 
-        this.flightAngle += (Math.random() - 0.5) * 0.3;
-
-        const newX = currentPosition.x + Math.cos(this.flightAngle) * this.flightSpeed;
-        const newY = currentPosition.y + Math.sin(this.flightAngle) * this.flightSpeed;
-
-        const distanceToTarget = getDistance({x: newX, y: newY}, targetPosition);
-        if (distanceToTarget > 50) {
-            const angleToTarget = Math.atan2(targetPosition.y - newY, targetPosition.x - newX);
-            this.flightAngle = this.flightAngle * 0.8 + angleToTarget * 0.2;
+        setPosition(position) {
+            this.element.style.left = `${position.x}px`;
+            this.element.style.top = `${position.y}px`;
         }
 
-        this.setPosition({x: newX, y: newY});
-
-        this.hunger -= 0.1;
-        if (this.hunger <= 0) {
-            // We'll implement death later
-            this.hunger = 100;  // For now, just reset hunger
+        getPosition() {
+            return {
+                x: parseFloat(this.element.style.left),
+                y: parseFloat(this.element.style.top)
+            };
         }
 
-        this.checkForFood();
-    }
-
-    // ... (rest of the Bird class remains the same)
-}
-
-function addEventLogMessage(type, details = {}) {
-    const eventMenu = window.cachedElements.eventMenu;
-    if (!eventMenu) {
-        console.error('Event menu not found');
-        return;
-    }
-
-    let message;
-    switch (type) {
-        case 'birdSpawn':
-            message = "A new bird has taken flight in the ecosystem!";
-            break;
-        case 'birdEat':
-            message = `A bird has feasted on ${details.food}. Its energy is now at ${details.energy}.`;
-            break;
-        case 'butterflySpawn':
-            message = "A delicate butterfly has emerged, carried by the breeze.";
-            break;
-        case 'bushPlanted':
-            message = "A flowering bush has been planted, adding beauty to the landscape.";
-            break;
-        case 'bushGrown':
-            message = "A new flowering bush has sprouted from pollination!";
-            break;
-        case 'treePlanted':
-            message = "A majestic tree now stands tall in the ecosystem.";
-            break;
-        case 'wormAppeared':
-            message = "A worm has surfaced, enriching the soil.";
-            break;
-        case 'eggLaid':
-            message = "An egg has been carefully placed in a tree's branches.";
-            break;
-        case 'eggHatch':
-            message = `The egg has hatched! ${details.count} new baby bird${details.count > 1 ? 's have' : ' has'} joined our world.`;
-            break;
-        default:
-            message = "The ecosystem continues to thrive and change.";
-    }
-
-    const eventMessageElement = document.createElement('div');
-    eventMessageElement.className = 'event-message';
-    eventMessageElement.textContent = message;
-    
-    eventMenu.appendChild(eventMessageElement);
-    
-    // Keep only the last 3 messages
-    while (eventMenu.children.length > 4) { // +1 for the header
-        eventMenu.removeChild(eventMenu.children[1]); // Remove the oldest message, not the header
-    }
-    
-    console.log(`BREAKING NEWS: ${message}`);
-}
-
-// Keep only the last 3 messages
-    while (eventMenu.children.length > 4) { // +1 for the header
-        eventMenu.removeChild(eventMenu.children[1]); // Remove the oldest message, not the header
-    }
-    
-    console.log(`BREAKING NEWS: ${message}`);
-}
-
-// Update functions
-function updateButterflies() {
-    window.butterflies.forEach(butterfly => butterfly.move());
-}
-
-function updateBirds() {
-    window.birds.forEach(bird => bird.move());
-}
-
-function updateWorms() {
-    // Implement worm wiggling here
-    const worms = document.querySelectorAll('.worm');
-    worms.forEach(worm => {
-        const wiggleAmount = Math.sin(Date.now() / 200) * 2;
-        worm.style.transform = `translateX(${wiggleAmount}px)`;
-    });
-}
-
-// Main game loop
-function gameLoop(currentTime) {
-    requestAnimationFrame(gameLoop);
-    
-    updateButterflies();
-    updateBirds();
-    updateWorms();
-    
-    performanceMonitor.update(currentTime);
-}
-
-// Initialization
-function initializeGame() {
-    window.cachedElements.playArea = document.getElementById('play-area');
-    window.cachedElements.emojiPanel = document.getElementById('emoji-panel');
-    window.cachedElements.eventMenu = document.getElementById('event-menu');
-    window.cachedElements.tree = document.getElementById('tree');
-
-    initializeEmojis();
-    setupEventListeners();
-    requestAnimationFrame(gameLoop);
-}
-
-function initializeEmojis() {
-    INITIAL_EMOJIS.forEach(item => {
-        const element = document.getElementById(item.id);
-        if (item.disabled) {
-            element.classList.add('disabled');
-            element.setAttribute('draggable', 'false');
-        } else {
-            element.setAttribute('draggable', 'true');
+        getRandomPositionAroundBush(bush) {
+            const bushPosition = getBushPosition(bush);
+            const angle = Math.random() * 2 * Math.PI;
+            const radius = Math.random() * 100 + 50; // 50-150px radius
+            return {
+                x: bushPosition.x + radius * Math.cos(angle),
+                y: bushPosition.y + radius * Math.sin(angle)
+            };
         }
-    });
-}
 
-function setupEventListeners() {
-    window.cachedElements.emojiPanel.addEventListener('dragstart', handleDragStart);
-    window.cachedElements.playArea.addEventListener('dragover', (e) => e.preventDefault());
-    window.cachedElements.playArea.addEventListener('drop', handleDrop);
-    window.cachedElements.emojiPanel.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
-}
+        move() {
+            if (this.state === 'resting') {
+                if (Math.random() < 0.05) {
+                    this.state = 'flying';
+                } else {
+                    return;
+                }
+            }
 
-// Expose necessary functions to the global scope
-window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
-window.addBird = addBird;
-window.startWormWiggle = startWormWiggle;
-window.addEventLogMessage = addEventLogMessage;
+            const currentPosition = this.getPosition();
+            let targetPosition;
 
-// Initialize the game when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initializeGame);
+            if (Math.random() < 0.7) {
+                targetPosition = this.getRandomPositionAroundBush(this.homeBush);
+            } else {
+                targetPosition = this.getRandomPositionInPlay();
+            }
 
-})(); // End of IIFE
+            this.flightAngle += (Math.random() - 0.5) * 0.3;  // Reduced angle change
+
+            const newX = currentPosition.x + Math.cos(this.flightAngle) * this.flightSpeed;
+            const newY = currentPosition.y + Math.sin(this.flightAngle) * this.flightSpeed;
+
+            // Smooth transition to new position
+            this.element.style.transition = 'left 0.5s, top 0.5s';
+            this.setPosition({x: newX, y: newY});
+
+            this.checkForPollination();
+        }
+
+        checkForPollination() {
+            if (this.carriesPollen) {
+                const nearbyBush = this.findNearbyBush();
+                if (nearbyBush && nearbyBush !== this.pollenSource) {
+                    this.pollinate(nearbyBush);
+                }
+            } else {
+                if (getDistance(this.getPosition(), getBushPosition(this.homeBush)) < 20) {
+                    this.carriesPollen = true;
+                    this.pollenSource = this.homeBush;
+                }
+            }
+        }
+
+        findNearbyBush() {
+            const bushes = Array.from(document.querySelectorAll('.emoji.bush'));
+            const currentPosition = this.getPosition();
+            for (let bush of bushes) {
+                const bushPosition = getBushPosition(bush);
+                const distance = getDistance(currentPosition, bushPosition);
+                if (distance < 50) {
+                    return bush;
+                }
+            }
+            return null;
+        }
+
+        pollinate(bush) {
+            if (Math.random() < 0.1) {
+                createNewFlowerBush(bush);
+            }
+            this.carriesPollen = false;
+            this.pollenSource = null;
+        }
+
+        getRandomPositionInPlay() {
+            return {
+                x: Math.random() * (window.cachedElements.playArea.clientWidth - 20),
+                y: Math.random() * (window.cachedElements.playArea.clientHeight - 20)
+            };
+        }
+    }
+
+ // Global cached elements
+window.cachedElements = {};
+window.butterflies = [];
+window.birds = [];
+
+// Wrap the entire game in an Immediately Invoked Function Expression (IIFE)
+(function() {
+    // Performance monitor
+    const performanceMonitor = {
+        frameCount: 0,
+        lastTime: performance.now(),
+        fps: 0,
+        lastLogTime: 0,
+
+        update: function(currentTime) {
+            this.frameCount++;
+            if (currentTime - this.lastTime >= 1000) {
+                this.fps = this.frameCount;
+                this.frameCount = 0;
+                this.lastTime = currentTime;
+                
+                if (currentTime - this.lastLogTime >= 5000) {
+                    console.log(`%cCurrent FPS: ${this.fps}`, 'color: green; font-weight: bold;');
+                    this.lastLogTime = currentTime;
+                }
+            }
+        }
+    };
+
+    // Initialize cached elements
+    window.cachedElements = {
+        playArea: null,
+        emojiPanel: null,
+        eventMenu: null,
+        tree: null
+    };
+
+    // Game state
+    let selectedEmoji = null;
+    let draggedElement = null;
+    let firstBirdLanded = false;
+
+    // Utility functions
+    function getRandomTime(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function getRandomEdgePosition() {
+        const playArea = window.cachedElements.playArea;
+        const edge = Math.floor(Math.random() * 4);
+        switch (edge) {
+            case 0: // Top
+                return {x: Math.random() * playArea.clientWidth, y: -20};
+            case 1: // Right
+                return {x: playArea.clientWidth + 20, y: Math.random() * playArea.clientHeight};
+            case 2: // Bottom
+                return {x: Math.random() * playArea.clientWidth, y: playArea.clientHeight + 20};
+            case 3: // Left
+                return {x: -20, y: Math.random() * playArea.clientHeight};
+        }
+    }
+
+    function getBushPosition(bush) {
+        return {
+            x: parseFloat(bush.style.left),
+            y: parseFloat(bush.style.top)
+        };
+    }
+
+    function getDistance(pos1, pos2) {
+        const dx = pos1.x - pos2.x;
+        const dy = pos1.y - pos2.y;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    function getEmojiName(emoji) {
+        switch(emoji) {
+            case EMOJIS.BUSH: return 'bush';
+            case EMOJIS.TREE: return 'tree';
+            case EMOJIS.BUTTERFLY: return 'butterfly';
+            case EMOJIS.BIRD: return 'bird';
+            case EMOJIS.WORM: return 'worm';
+            default: return 'creature';
+        }
+    }
+
+    // Butterfly class
+    class Butterfly {
+        constructor(element, homeBush) {
+            this.element = element;
+            this.homeBush = homeBush;
+            this.state = 'flying';
+            this.carriesPollen = false;
+            this.pollenSource = null;
+            this.flightAngle = Math.random() * Math.PI * 2;
+            this.flightSpeed = 0.5 + Math.random() * 0.5;
+            this.setPosition(this.getRandomPositionAroundBush(homeBush));
+        }
+
+        setPosition(position) {
+            this.element.style.left = `${position.x}px`;
+            this.element.style.top = `${position.y}px`;
+        }
+
+        getPosition() {
+            return {
+                x: parseFloat(this.element.style.left),
+                y: parseFloat(this.element.style.top)
+            };
+        }
+
+        getRandomPositionAroundBush(bush) {
+            const bushPosition = getBushPosition(bush);
+            const angle = Math.random() * 2 * Math.PI;
+            const radius = Math.random() * 100 + 50; // 50-150px radius
+            return {
+                x: bushPosition.x + radius * Math.cos(angle),
+                y: bushPosition.y + radius * Math.sin(angle)
+            };
+        }
+
+        move() {
+            if (this.state === 'resting') {
+                if (Math.random() < 0.05) {
+                    this.state = 'flying';
+                } else {
+                    return;
+                }
+            }
+
+            const currentPosition = this.getPosition();
+            let targetPosition;
+
+            if (Math.random() < 0.7) {
+                targetPosition = this.getRandomPositionAroundBush(this.homeBush);
+            } else {
+                targetPosition = this.getRandomPositionInPlay();
+            }
+
+            this.flightAngle += (Math.random() - 0.5) * 0.3;  // Reduced angle change
+
+            const newX = currentPosition.x + Math.cos(this.flightAngle) * this.flightSpeed;
+            const newY = currentPosition.y + Math.sin(this.flightAngle) * this.flightSpeed;
+
+            // Smooth transition to new position
+            this.element.style.transition = 'left 0.5s, top 0.5s';
+            this.setPosition({x: newX, y: newY});
+
+            this.checkForPollination();
+        }
+
+        checkForPollination() {
+            if (this.carriesPollen) {
+                const nearbyBush = this.findNearbyBush();
+                if (nearbyBush && nearbyBush !== this.pollenSource) {
+                    this.pollinate(nearbyBush);
+                }
+            } else {
+                if (getDistance(this.getPosition(), getBushPosition(this.homeBush)) < 20) {
+                    this.carriesPollen = true;
+                    this.pollenSource = this.homeBush;
+                }
+            }
+        }
+
+        findNearbyBush() {
+            const bushes = Array.from(document.querySelectorAll('.emoji.bush'));
+            const currentPosition = this.getPosition();
+            for (let bush of bushes) {
+                const bushPosition = getBushPosition(bush);
+                const distance = getDistance(currentPosition, bushPosition);
+                if (distance < 50) {
+                    return bush;
+                }
+            }
+            return null;
+        }
+
+        pollinate(bush) {
+            if (Math.random() < 0.1) {
+                createNewFlowerBush(bush);
+            }
+            this.carriesPollen = false;
+            this.pollenSource = null;
+        }
+
+        getRandomPositionInPlay() {
+            return {
+                x: Math.random() * (window.cachedElements.playArea.clientWidth - 20),
+                y: Math.random() * (window.cachedElements.playArea.clientHeight - 20)
+            };
+        }
+    }
