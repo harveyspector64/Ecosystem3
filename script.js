@@ -16,20 +16,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle click event for selecting emojis
-    emojiPanel.addEventListener('click', (e) => {
-        const clickedElement = e.target;
-        if (clickedElement && clickedElement.classList.contains('emoji')) {
-            selectedEmoji = clickedElement.textContent;
+    // Handle dragstart event for selecting emojis
+    emojiPanel.addEventListener('dragstart', (e) => {
+        const draggedElement = e.target;
+        if (draggedElement && draggedElement.classList.contains('emoji')) {
+            selectedEmoji = draggedElement.textContent;
+            e.dataTransfer.setData('text/plain', draggedElement.textContent);
             console.log(`Emoji selected: ${selectedEmoji}`);
         }
     });
 
-    // Handle click event in the play area
-    playArea.addEventListener('click', (e) => {
+    // Handle drop event in the play area
+    playArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    playArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const x = e.clientX - playArea.offsetLeft;
+        const y = e.clientY - playArea.offsetTop;
+        const emoji = e.dataTransfer.getData('text/plain');
+        if (emoji) {
+            console.log(`Placing emoji: ${emoji} at (${x}, ${y})`);
+            addEmojiToPlayArea(emoji, x, y, playArea);
+            selectedEmoji = null;
+        } else {
+            console.log('No emoji selected');
+        }
+    });
+
+    // Handle touch events for mobile drag-and-drop
+    emojiPanel.addEventListener('touchstart', (e) => {
+        const touchedElement = e.target;
+        if (touchedElement && touchedElement.classList.contains('emoji')) {
+            selectedEmoji = touchedElement.textContent;
+            console.log(`Emoji touched: ${selectedEmoji}`);
+        }
+    });
+
+    playArea.addEventListener('touchend', (e) => {
         if (selectedEmoji) {
-            const x = e.clientX - playArea.offsetLeft;
-            const y = e.clientY - playArea.offsetTop;
+            const touch = e.changedTouches[0];
+            const x = touch.clientX - playArea.offsetLeft;
+            const y = touch.clientY - playArea.offsetTop;
             console.log(`Placing emoji: ${selectedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(selectedEmoji, x, y, playArea);
             selectedEmoji = null;
@@ -46,12 +75,21 @@ document.addEventListener('DOMContentLoaded', () => {
         emojiElement.textContent = emoji;
         emojiElement.setAttribute('draggable', 'true');
 
-        // Attach the same click listener
-        emojiElement.addEventListener('click', (e) => {
-            const clickedElement = e.target;
-            if (clickedElement && clickedElement.classList.contains('emoji')) {
-                selectedEmoji = clickedElement.textContent;
+        // Attach the same event listeners
+        emojiElement.addEventListener('dragstart', (e) => {
+            const draggedElement = e.target;
+            if (draggedElement && draggedElement.classList.contains('emoji')) {
+                selectedEmoji = draggedElement.textContent;
+                e.dataTransfer.setData('text/plain', draggedElement.textContent);
                 console.log(`Emoji selected: ${selectedEmoji}`);
+            }
+        });
+
+        emojiElement.addEventListener('touchstart', (e) => {
+            const touchedElement = e.target;
+            if (touchedElement && touchedElement.classList.contains('emoji')) {
+                selectedEmoji = touchedElement.textContent;
+                console.log(`Emoji touched: ${selectedEmoji}`);
             }
         });
 
@@ -204,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add message to event log
     function addEventLogMessage(message) {
         eventMenu.innerHTML = `<div class="event-message">${message}</div>`;
-        console.log(`Event Log: ${message}`);
+        console.log(`BREAKING NEWS: ${message}`);
     }
 
     // Expose addWormToPanel globally
