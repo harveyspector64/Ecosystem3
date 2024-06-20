@@ -22,12 +22,7 @@ const performanceMonitor = {
 };
 
 // Cached DOM elements
-const cachedElements = {
-    playArea: null,
-    emojiPanel: null,
-    eventMenu: null,
-    tree: null
-};
+const cachedElements = {};
 
 // Butterfly object pool
 const butterflyPool = {
