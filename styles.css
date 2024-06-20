@@ -4,17 +4,48 @@ body {
     height: 100vh;
     font-family: Arial, sans-serif;
     overflow: hidden; /* Prevent scrolling */
+    touch-action: manipulation; /* Prevent double-tap zoom */
 }
 
-#emoji-panel {
-    width: 150px;
+#container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+#sidebar {
+    width: 20%; /* Adjust for a better fit on mobile */
     background-color: #f0f0f0;
     padding: 10px;
     border-right: 1px solid #ccc;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    justify-content: space-between; /* Distribute space evenly */
     overflow-y: auto; /* Scrollable sidebar */
+}
+
+#emoji-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto; /* Scrollable emoji panel */
+}
+
+#event-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 30%;
+    overflow-y: hidden; /* Prevent scrolling */
+    border-top: 1px solid #ccc;
+    margin-top: 10px;
+}
+
+.event-message {
+    padding: 10px;
+    font-size: 14px;
+    text-align: center;
+    width: 100%;
 }
 
 #play-area {
@@ -22,14 +53,12 @@ body {
     background-color: #ffffff;
     position: relative;
     overflow: hidden;
-    touch-action: none; /* Prevent default touch actions */
 }
 
 .emoji {
     font-size: 20px; /* Size for panel emojis */
     cursor: pointer;
     margin: 10px 0;
-    touch-action: none; /* Prevent touch actions on emojis */
 }
 
 .disabled {
@@ -54,38 +83,15 @@ body {
     font-size: 10px; /* Smaller size for worms */
 }
 
+/* Prevent default touch actions */
+body, #play-area, .emoji {
+    touch-action: manipulation;
+}
+
 /* Override bird emoji based on platform */
 @supports (-webkit-appearance: none) and (stroke-color:transparent) {
     /* iOS and macOS */
     .bird {
         content: '🦅'; /* Use crow emoji for Apple */
     }
-}
-
-#event-menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 30%;
-    overflow-y: hidden; /* Prevent scrolling */
-    border-top: 1px solid #ccc;
-    margin-top: 10px;
-    background-color: #f8f8f8; /* Background color for better readability */
-    padding: 10px;
-}
-
-.event-message {
-    padding: 10px;
-    font-size: 16px; /* Adjust font size */
-    text-align: center;
-    width: 100%;
-    color: #333; /* Font color for better readability */
-    background-color: #ffffff; /* Background color for message */
-    border-radius: 5px; /* Rounded corners for the message box */
-    margin-bottom: 5px; /* Space between messages */
-}
-
-h4 {
-    text-align: center;
-    margin: 0;
 }
