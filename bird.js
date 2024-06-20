@@ -46,11 +46,17 @@ function updateEventLog() {
     }, 50); // Small delay to ensure the transition is applied
 }
 
-function addBird(x, y, playArea) {
+function addBird(x, y) {
     const delay = Math.random() * 8000 + 4000; // 4-12 seconds delay
     console.log(`Spawning bird after delay: ${delay}`);
     
     setTimeout(() => {
+        const playArea = document.getElementById('play-area');
+        if (!playArea) {
+            console.error('Play area not found');
+            return;
+        }
+
         const birdElement = document.createElement('div');
         birdElement.textContent = EMOJIS.BIRD;
         birdElement.classList.add('emoji', 'bird');
