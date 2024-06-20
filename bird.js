@@ -340,7 +340,7 @@ function birdMoveToWorm(bird, worm, playArea) {
 
 function eatWorm(bird, worm) {
     setState(bird, birdStates.EATING);
-    console.log(`Bird ate a worm. Hunger: ${bird.hunger}`);
+    console.log(` ate a worm. Hunger: ${bird.hunger}`);
 
     setTimeout(() => {
         worm.remove();
@@ -394,7 +394,7 @@ function detectButterflies(bird, playArea) {
                 birdRect.bottom > butterflyRect.top) {
                     butterfly.remove();
                     bird.hunger = Math.min(bird.hunger + 5, 100);
-                    console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
+                    console.log(` ate a butterfly. Hunger: ${bird.hunger}`);
                     logEvent(`Bird ${bird.id} ate a butterfly.`);
             }
         });
