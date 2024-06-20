@@ -133,6 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
         wormElement.style.left = `${x}px`;
         wormElement.style.top = `${y}px`;
         playArea.appendChild(wormElement);
+
+        // Start worm wiggling
+        startWormWiggle(wormElement);
     }
 
     function addEmojiToPlayArea(emoji, x, y, playArea) {
@@ -165,6 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
             unlockTree();
         } else if (emoji === EMOJIS.TREE) {
             addBird(x, y, playArea);
+        } else if (emoji === EMOJIS.WORM) {
+            startWormWiggle(emojiElement);
         }
     }
 
