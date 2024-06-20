@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const eventMenu = document.getElementById('event-menu');
     let selectedEmoji = null;
     let draggedElement = null;
-    let firstBirdLanded = false;
 
     // Initialize emojis in the emoji panel
     INITIAL_EMOJIS.forEach(item => {
@@ -82,6 +81,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Function to add emoji to the play area
+    function addEmojiToPlayArea(emoji, x, y, playArea) {
+        const emojiElement = document.createElement('div');
+        emojiElement.textContent = emoji;
+        emojiElement.classList.add('emoji');
+        emojiElement.style.position = 'absolute';
+        emojiElement.style.left = `${x}px`;
+        emojiElement.style.top = `${y}px`;
+        playArea.appendChild(emojiElement);
+
+        console.log(`Added ${emoji} to play area at (${x}, ${y})`);
+
+        // Additional logic for specific emojis
+        if (emoji === EMOJIS.BUSH) {
+            addButterflies(x, y, playArea);
+            unlockTree();
+        } else if (emoji === EMOJIS.TREE) {
+            addBird(x, y, playArea);
+        }
+    }
+
     // Ensure the worm is correctly added to the emoji panel with event listeners
     function addEmojiToPanel(emoji, id) {
         const emojiElement = document.createElement('div');
@@ -124,56 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Define addWorm function
-    function addWorm(x, y) {
-        const wormElement = document.createElement('div');
-        wormElement.textContent = EMOJIS.WORM;
-        wormElement.classList.add('emoji', 'worm');
-        wormElement.style.position = 'absolute';
-        wormElement.style.left = `${x}px`;
-        wormElement.style.top = `${y}px`;
-        playArea.appendChild(wormElement);
-    }
-
-    function addEmojiToPlayArea(emoji, x, y, playArea) {
-        const emojiElement = document.createElement('div');
-        emojiElement.textContent = emoji;
-
-        // Apply specific classes for styling
-        if (emoji === EMOJIS.TREE) {
-            emojiElement.classList.add('emoji', 'tree');
-        } else if (emoji === EMOJIS.BUTTERFLY) {
-            emojiElement.classList.add('emoji', 'butterfly');
-        } else if (emoji === EMOJIS.BIRD) {
-            emojiElement.classList.add('emoji', 'bird');
-        } else if (emoji === EMOJIS.WORM) {
-            emojiElement.classList.add('emoji', 'worm');
-        } else {
-            emojiElement.classList.add('emoji');
-        }
-
-        emojiElement.style.position = 'absolute';
-        emojiElement.style.left = `${x}px`;
-        emojiElement.style.top = `${y}px`;
-        playArea.appendChild(emojiElement);
-
-        console.log(`Added ${emoji} to play area at (${x}, ${y})`);
-
-        // Additional logic for specific emojis
-        if (emoji === EMOJIS.BUSH) {
-            addButterflies(x, y, playArea);
-            unlockTree();
-        } else if (emoji === EMOJIS.TREE) {
-            addBird(x, y, playArea);
-        }
-    }
-
-    function unlockTree() {
-        const tree = document.getElementById('tree');
-        tree.classList.remove('disabled');
-        tree.setAttribute('draggable', 'true');
-    }
-
+    // Function to add butterflies
     function addButterflies(x, y, playArea) {
         const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
         for (let i = 0; i < numButterflies; i++) {
@@ -258,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
-    // Add message to event log
     function addEventLogMessage(message) {
         eventMenu.innerHTML = `<div class="event-message">${message}</div>`;
         console.log(`BREAKING NEWS: ${message}`);
