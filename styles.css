@@ -57,6 +57,24 @@ body {
     color: #ccc;
 }
 
+.butterfly {
+    font-size: 15px; /* Smaller size for butterflies */
+    opacity: 0.7; /* Slightly transparent */
+}
+
+.tree {
+    font-size: 80px; /* Larger size for trees */
+}
+
+.bird {
+    font-size: 30px; /* Relative size for birds */
+    content: '🐦'; /* Default to red robin */
+}
+
+.worm {
+    font-size: 10px; /* Smaller size for worms */
+}
+
 /* Adjustments for smaller screens */
 @media (max-width: 768px) {
     #sidebar {
@@ -69,6 +87,18 @@ body {
 
     .emoji {
         font-size: 18px; /* Smaller emoji size */
+    }
+
+    .tree {
+        font-size: 60px; /* Adjust tree size for smaller screens */
+    }
+
+    .bird {
+        font-size: 25px; /* Adjust bird size for smaller screens */
+    }
+
+    .worm {
+        font-size: 8px; /* Adjust worm size for smaller screens */
     }
 }
 
@@ -83,5 +113,17 @@ body {
 
     .emoji {
         font-size: 16px; /* Smaller emoji size */
+    }
+
+    .tree {
+        font-size: 50px; /* Further adjust tree size */
+    }
+
+    .bird {
+        font-size: 20px; /* Further adjust bird size */
+    }
+
+    .worm {
+        font-size: 6px; /* Further adjust worm size */
     }
 }
