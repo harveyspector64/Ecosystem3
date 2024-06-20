@@ -3,15 +3,20 @@ const performanceMonitor = {
     frameCount: 0,
     lastTime: performance.now(),
     fps: 0,
+    lastLogTime: 0,
 
-    update: function() {
+    update: function(currentTime) {
         this.frameCount++;
-        const currentTime = performance.now();
         if (currentTime - this.lastTime >= 1000) {
             this.fps = this.frameCount;
             this.frameCount = 0;
             this.lastTime = currentTime;
-            console.log(`Current FPS: ${this.fps}`);
+            
+            // Log FPS every 5 seconds
+            if (currentTime - this.lastLogTime >= 5000) {
+                console.log(`%cCurrent FPS: ${this.fps}`, 'color: green; font-weight: bold;');
+                this.lastLogTime = currentTime;
+            }
         }
     }
 };
@@ -25,7 +30,7 @@ function gameLoop(currentTime) {
     updateBirds();
     updateWorms();
     
-    performanceMonitor.update();
+    performanceMonitor.update(currentTime);
 }
 
 // Game state
