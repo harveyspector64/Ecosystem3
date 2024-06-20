@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        emojiPanel.appendChild(emojiElement);
+        emojiPanel.insertBefore(emojiElement, emojiPanel.firstChild); // Add new emojis at the top
         console.log(`${id} added to emoji panel`);
     }
 
