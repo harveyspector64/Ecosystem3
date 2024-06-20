@@ -25,6 +25,7 @@ function logEvent(message) {
         eventLog.shift(); // Keep the log to the last 10 events
     }
     updateEventLog();
+    console.log(`Event: ${message}`); // Debug message
 }
 
 function updateEventLog() {
@@ -348,7 +349,7 @@ function eatWorm(bird, worm) {
         bird.hunger = Math.min(bird.hunger + 20, 100);
         bird.foodConsumed = (bird.foodConsumed || 0) + 20; // Track food consumption
 
-        logEvent(`Bird ${bird.id} ate a worm.`);
+        logEvent(`Bird ${bird.id} ate a worm. Food consumed: ${bird.foodConsumed}`);
 
         if (bird.hunger >= 60) {
             birdAscendAndFlight(bird, playArea);
@@ -400,7 +401,7 @@ function detectButterflies(bird, playArea) {
                     bird.hunger = Math.min(bird.hunger + 5, 100);
                     bird.foodConsumed = (bird.foodConsumed || 0) + 5; // Track food consumption
                     console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
-                    logEvent(`Bird ${bird.id} ate a butterfly.`);
+                    logEvent(`Bird ${bird.id} ate a butterfly. Food consumed: ${bird.foodConsumed}`);
 
                     checkForNestCreation(bird); // Check for nest creation after eating
             }
@@ -442,7 +443,7 @@ function getNearestTree(bird) {
 }
 
 function checkForNestCreation(bird) {
-    if (bird.foodConsumed >= 200) {
+    if (bird.foodConsumed >= 120) { // Adjusted threshold for nest creation
         const tree = getNearestTree(bird);
         if (tree) {
             createNestInTree(tree);
@@ -462,6 +463,8 @@ function createNestInTree(tree) {
     nestElement.style.top = `${parseFloat(tree.style.top) - 30}px`; // Place nest slightly above the tree
     tree.appendChild(nestElement);
 
+    logEvent('A nest has been created in a tree.');
+
     // Set timer for nest to hatch
     const hatchTime = Math.random() * 60000 + 120000; // 2-3 minutes
     setTimeout(() => hatchNest(nestElement), hatchTime);
@@ -472,8 +475,11 @@ function hatchNest(nestElement) {
 
     nestElement.remove();
 
+    logEvent('A nest has hatched! New birds have appeared.');
+
     const playArea = document.getElementById('play-area');
-    for (let i = 0; i < 3; i++) {
+    const numberOfBirds = Math.floor(Math.random() * 2) + 2; // 2-3 new birds
+    for (let i = 0; i < numberOfBirds; i++) {
         const x = Math.random() * playArea.clientWidth;
         const y = Math.random() * playArea.clientHeight;
         addBird(x, y, playArea);
