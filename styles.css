@@ -1,10 +1,10 @@
 body {
-    display: flex;
-    margin: 0;
-    height: 100vh;
     font-family: Arial, sans-serif;
-    overflow: hidden; /* Prevent scrolling */
-    touch-action: manipulation; /* Prevent double-tap zoom */
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
 }
 
 #container {
@@ -14,91 +14,103 @@ body {
 }
 
 #sidebar {
-    width: 20%; /* Adjust for a better fit on mobile */
+    width: 20%;
+    min-width: 200px;
     background-color: #f0f0f0;
     padding: 10px;
-    border-right: 1px solid #ccc;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Distribute space evenly */
-    overflow-y: auto; /* Scrollable sidebar */
+    justify-content: space-between;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
 
 #emoji-panel {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-y: auto; /* Scrollable emoji panel */
-}
-
-#event-menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 30%;
-    overflow-y: hidden; /* Prevent scrolling */
-    border-top: 1px solid #ccc;
-    margin-top: 10px;
-}
-
-#event-log {
-    height: 200px; /* Adjust height as needed */
-    overflow: hidden; /* Hide the overflow */
-    position: relative;
-}
-
-.event-message {
-    height: 20px; /* Adjust height to match the transition */
-    overflow: hidden;
-    position: absolute;
-    width: 100%; /* Ensure full width */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-
-#play-area {
-    flex: 1;
-    background-color: #ffffff;
-    position: relative;
-    overflow: hidden;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
 }
 
 .emoji {
-    font-size: 20px; /* Size for panel emojis */
+    font-size: 2em;
     cursor: pointer;
-    margin: 10px 0;
+    transition: transform 0.2s;
 }
 
-.disabled {
-    color: #ccc;
+.emoji:hover {
+    transform: scale(1.1);
+}
+
+.emoji.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#event-menu {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+#event-menu h5 {
+    margin: 0 0 10px 0;
+    text-align: center;
+    color: #333;
+}
+
+.event-message {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+#play-area {
+    flex-grow: 1;
+    background-color: #e6f7ff;
+    position: relative;
+    overflow: hidden;
 }
 
 .butterfly {
-    font-size: 15px; /* Smaller size for butterflies */
-    opacity: 0.7; /* Slightly transparent */
-}
-
-.tree {
-    font-size: 80px; /* Larger size for trees */
+    transition: all 0.5s ease;
 }
 
 .bird {
-    font-size: 30px; /* Relative size for birds */
-    content: '🐦'; /* Default to red robin */
+    transition: all 0.3s ease;
 }
 
 .worm {
-    font-size: 10px; /* Smaller size for worms */
+    transition: transform 0.5s ease;
 }
 
-/* Prevent default touch actions */
-body, #play-area, .emoji {
-    touch-action: manipulation;
-}
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
 
-/* Override bird emoji based on platform */
-@supports (-webkit-appearance: none) and (stroke-color:transparent) {
-    /* iOS and macOS */
-    .bird {
-        content: '🦅'; /* Use crow emoji for Apple */
+    #sidebar {
+        width: 100%;
+        min-width: auto;
+        height: 30%;
+        flex-direction: row;
+    }
+
+    #emoji-panel {
+        width: 50%;
+    }
+
+    #event-menu {
+        width: 50%;
+        margin-top: 0;
+        border-top: none;
+        border-left: 1px solid #ccc;
+        padding-left: 10px;
+    }
+
+    #play-area {
+        height: 70%;
     }
 }
