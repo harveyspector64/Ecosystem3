@@ -270,37 +270,34 @@ window.cachedElements = {};
         addEventLogMessage('A new butterfly has appeared!');
     }
 
-    function moveButterfly(butterfly, targetX, targetY) {
-        let lastTime = performance.now();
-        const speed = 0.05; // Adjust this value to change movement speed
+function moveButterfly(butterfly, targetX, targetY) {
+    const moveInterval = setInterval(() => {
+        const currentX = parseFloat(butterfly.style.left);
+        const currentY = parseFloat(butterfly.style.top);
 
-        function animate(currentTime) {
-            const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
-            lastTime = currentTime;
+        const angle = Math.random() * Math.PI * 2; // Random angle
+        const distance = Math.random() * 5 + 2; // Smaller distance for smoother movement
 
-            const currentX = parseFloat(butterfly.style.left);
-            const currentY = parseFloat(butterfly.style.top);
+        const newX = currentX + distance * Math.cos(angle);
+        const newY = currentY + distance * Math.sin(angle);
 
-            const angle = Math.random() * Math.PI * 2;
-            const distance = speed * deltaTime;
+        butterfly.style.left = `${newX}px`;
+        butterfly.style.top = `${newY}px`;
 
-            const newX = currentX + distance * Math.cos(angle);
-            const newY = currentY + distance * Math.sin(angle);
+        butterfly.hunger -= 0.1; // Decrease hunger over time
 
-            butterfly.style.left = `${newX}px`;
-            butterfly.style.top = `${newY}px`;
-
-            butterfly.hunger -= 0.1 * deltaTime;
-
-            if (butterfly.hunger <= 0) {
-                butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
-            } else {
-                requestAnimationFrame(animate);
-            }
+        if (butterfly.hunger <= 0) {
+            clearInterval(moveInterval);
+            butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
         }
+    }, 100); // Faster interval for more frequent updates
 
-        requestAnimationFrame(animate);
-    }
+    // Clear the interval after a certain time to prevent butterflies from flying indefinitely
+    setTimeout(() => {
+        clearInterval(moveInterval);
+        butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
+    }, 30000); // Land after 30 seconds of flight
+}
 
     function updateButterflies() {
         // This function is now empty as individual butterflies are animated in moveButterfly
