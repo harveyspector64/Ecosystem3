@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emojiPanel = document.getElementById('emoji-panel');
     const eventMenu = document.getElementById('event-menu');
     let draggedEmoji = null;
+    let selectedEmoji = null;
     let firstBirdLanded = false;
 
     // Initialize emojis in the emoji panel
@@ -25,6 +26,30 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Drag start: ${draggedEmoji}`);
     });
 
+    // Handle touch start event for mobile in the emoji panel
+    emojiPanel.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element && element.classList.contains('emoji')) {
+            selectedEmoji = element.textContent;
+            console.log(`Emoji selected: ${selectedEmoji}`);
+        }
+    });
+
+    // Handle touch end event for mobile in the play area
+    playArea.addEventListener('touchend', (e) => {
+        if (selectedEmoji) {
+            const touch = e.changedTouches[0];
+            const x = touch.clientX - playArea.offsetLeft;
+            const y = touch.clientY - playArea.offsetTop;
+            console.log(`Touch end: ${selectedEmoji} at (${x}, ${y})`);
+            addEmojiToPlayArea(selectedEmoji, x, y, playArea);
+            selectedEmoji = null;
+        } else {
+            console.log('No emoji selected');
+        }
+    });
+
     // Ensure the worm is correctly added to the emoji panel with event listeners
     function addEmojiToPanel(emoji, id) {
         const emojiElement = document.createElement('div');
@@ -40,6 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             draggedEmoji = draggedElement.textContent;
             console.log(`Drag start: ${draggedEmoji}`);
+        });
+
+        // Attach the same touchstart listener
+        emojiElement.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (element && element.classList.contains('emoji')) {
+                selectedEmoji = element.textContent;
+                console.log(`Emoji selected: ${selectedEmoji}`);
+            }
         });
 
         emojiPanel.appendChild(emojiElement);
@@ -83,35 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             }
-            draggedEmoji = null;
-        } else {
-            console.log('No dragged emoji');
-        }
-    });
-
-    // Handle touch start event for mobile
-    playArea.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        const element = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (element && element.classList.contains('emoji')) {
-            draggedEmoji = element.textContent;
-            console.log(`Touch start: ${draggedEmoji}`);
-        }
-    });
-
-    // Handle touch move event for mobile
-    playArea.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-    });
-
-    // Handle touch end event for mobile
-    playArea.addEventListener('touchend', (e) => {
-        if (draggedEmoji) {
-            const touch = e.changedTouches[0];
-            const x = touch.clientX - playArea.offsetLeft;
-            const y = touch.clientY - playArea.offsetTop;
-            console.log(`Touch end: ${draggedEmoji} at (${x}, ${y})`);
-            addEmojiToPlayArea(draggedEmoji, x, y, playArea);
             draggedEmoji = null;
         } else {
             console.log('No dragged emoji');
