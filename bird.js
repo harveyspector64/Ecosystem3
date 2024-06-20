@@ -181,10 +181,12 @@ function birdDescendToGround(bird, playArea) {
             window.addWormToPanel();
         }
 
-        // Bird ascends and resumes flight after landing
+        // Keep bird on the ground longer to allow for worm detection
         setTimeout(() => {
-            birdAscendAndFlight(bird, playArea);
-        }, 1000);
+            if (bird.currentState === birdStates.WALKING) {
+                birdAscendAndFlight(bird, playArea);
+            }
+        }, 5000); // Keep bird on ground for 5 seconds
     }, 1000); // Longer delay to simulate smooth landing
 }
 
