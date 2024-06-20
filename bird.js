@@ -443,7 +443,7 @@ function getNearestTree(bird) {
 }
 
 function checkForNestCreation(bird) {
-    if (bird.foodConsumed >= 120) { // Adjusted threshold for nest creation
+    if (bird.foodConsumed >= 180) { // Adjusted threshold for nest creation
         const tree = getNearestTree(bird);
         if (tree) {
             createNestInTree(tree);
