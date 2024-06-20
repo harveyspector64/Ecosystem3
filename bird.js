@@ -30,7 +30,20 @@ function logEvent(message) {
 
 function updateEventLog() {
     const eventLogDiv = document.getElementById('event-log');
-    eventLogDiv.innerHTML = eventLog.join('<br>');
+    eventLogDiv.innerHTML = ''; // Clear the current log
+    eventLog.forEach((message, index) => {
+        const eventElement = document.createElement('div');
+        eventElement.className = 'event-message';
+        eventElement.style.transition = 'transform 0.5s ease';
+        eventElement.style.transform = `translateY(${index * 20}px)`; // Adjust based on index
+        eventElement.innerHTML = message;
+        eventLogDiv.appendChild(eventElement);
+    });
+    setTimeout(() => {
+        eventLogDiv.querySelectorAll('.event-message').forEach((element, index) => {
+            element.style.transform = `translateY(${(index - eventLog.length + 10) * 20}px)`; // Adjust based on new index
+        });
+    }, 50); // Small delay to ensure the transition is applied
 }
 
 function addBird(x, y, playArea) {
@@ -443,7 +456,7 @@ function getNearestTree(bird) {
 }
 
 function checkForNestCreation(bird) {
-    if (bird.foodConsumed >= 180) { // Adjusted threshold for nest creation
+    if (bird.foodConsumed >= 120) { // Adjusted threshold for nest creation
         const tree = getNearestTree(bird);
         if (tree) {
             createNestInTree(tree);
