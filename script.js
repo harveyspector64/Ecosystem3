@@ -270,34 +270,34 @@ window.cachedElements = {};
         addEventLogMessage('A new butterfly has appeared!');
     }
 
-function moveButterfly(butterfly, targetX, targetY) {
-    const moveInterval = setInterval(() => {
-        const currentX = parseFloat(butterfly.style.left);
-        const currentY = parseFloat(butterfly.style.top);
+    function moveButterfly(butterfly, targetX, targetY) {
+        const moveInterval = setInterval(() => {
+            const currentX = parseFloat(butterfly.style.left);
+            const currentY = parseFloat(butterfly.style.top);
 
-        const angle = Math.random() * Math.PI * 2; // Random angle
-        const distance = Math.random() * 5 + 2; // Smaller distance for smoother movement
+            const angle = Math.random() * Math.PI * 2; // Random angle
+            const distance = Math.random() * 5 + 2; // Smaller distance for smoother movement
 
-        const newX = currentX + distance * Math.cos(angle);
-        const newY = currentY + distance * Math.sin(angle);
+            const newX = currentX + distance * Math.cos(angle);
+            const newY = currentY + distance * Math.sin(angle);
 
-        butterfly.style.left = `${newX}px`;
-        butterfly.style.top = `${newY}px`;
+            butterfly.style.left = `${newX}px`;
+            butterfly.style.top = `${newY}px`;
 
-        butterfly.hunger -= 0.1; // Decrease hunger over time
+            butterfly.hunger -= 0.1; // Decrease hunger over time
 
-        if (butterfly.hunger <= 0) {
+            if (butterfly.hunger <= 0) {
+                clearInterval(moveInterval);
+                butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
+            }
+        }, 100); // Faster interval for more frequent updates
+
+        // Clear the interval after a certain time to prevent butterflies from flying indefinitely
+        setTimeout(() => {
             clearInterval(moveInterval);
             butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
-        }
-    }, 100); // Faster interval for more frequent updates
-
-    // Clear the interval after a certain time to prevent butterflies from flying indefinitely
-    setTimeout(() => {
-        clearInterval(moveInterval);
-        butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
-    }, 30000); // Land after 30 seconds of flight
-}
+        }, 30000); // Land after 30 seconds of flight
+    }
 
     function updateButterflies() {
         // This function is now empty as individual butterflies are animated in moveButterfly
@@ -344,29 +344,30 @@ function moveButterfly(butterfly, targetX, targetY) {
         }
     }
 
-function addEventLogMessage(message) {
-    const eventMenu = document.getElementById('event-menu');
-    if (!eventMenu) {
-        console.error('Event menu not found');
-        return;
+    function getRandomTime(min, max) {
+        return Math.random() * (max - min) + min;
     }
 
-    const eventMessageElement = document.createElement('div');
-    eventMessageElement.className = 'event-message';
-    eventMessageElement.textContent = message;
-    
-    eventMenu.appendChild(eventMessageElement);
-    
-    // Keep only the last 5 messages
-    while (eventMenu.children.length > 6) { // +1 for the header
-        eventMenu.removeChild(eventMenu.children[1]); // Remove the oldest message, not the header
-    }
-    
-    console.log(`BREAKING NEWS: ${message}`);
-}
+    function addEventLogMessage(message) {
+        const eventMenu = document.getElementById('event-menu');
+        if (!eventMenu) {
+            console.error('Event menu not found');
+            return;
+        }
 
-// Make sure this function is exposed globally
-window.addEventLogMessage = addEventLogMessage;
+        const eventMessageElement = document.createElement('div');
+        eventMessageElement.className = 'event-message';
+        eventMessageElement.textContent = message;
+        
+        eventMenu.appendChild(eventMessageElement);
+        
+        // Keep only the last 5 messages
+        while (eventMenu.children.length > 6) { // +1 for the header
+            eventMenu.removeChild(eventMenu.children[1]); // Remove the oldest message, not the header
+        }
+        
+        console.log(`BREAKING NEWS: ${message}`);
+    }
 
     function updateBirds() {
         // Implement bird movement and behavior here
