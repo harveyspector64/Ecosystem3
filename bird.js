@@ -1,5 +1,3 @@
-const playArea = document.getElementById('play-area');
-let firstBirdLanded = false;
 let birdCounter = 0;
 const eventLog = [];
 
@@ -20,30 +18,11 @@ function setState(bird, newState) {
 }
 
 function logEvent(message) {
-    eventLog.push(message);
-    if (eventLog.length > 10) {
-        eventLog.shift(); // Keep the log to the last 10 events
+    if (typeof window.addEventLogMessage === 'function') {
+        window.addEventLogMessage(message);
+    } else {
+        console.log(`Event: ${message}`);
     }
-    updateEventLog();
-    console.log(`Event: ${message}`); // Debug message
-}
-
-function updateEventLog() {
-    const eventLogDiv = document.getElementById('event-log');
-    eventLogDiv.innerHTML = ''; // Clear the current log
-    eventLog.forEach((message, index) => {
-        const eventElement = document.createElement('div');
-        eventElement.className = 'event-message';
-        eventElement.style.transition = 'transform 0.5s ease';
-        eventElement.style.transform = `translateY(${index * 20}px)`; // Adjust based on index
-        eventElement.innerHTML = message;
-        eventLogDiv.appendChild(eventElement);
-    });
-    setTimeout(() => {
-        eventLogDiv.querySelectorAll('.event-message').forEach((element, index) => {
-            element.style.transform = `translateY(${(index - eventLog.length + 10) * 20}px)`; // Adjust based on new index
-        });
-    }, 50); // Small delay to ensure the transition is applied
 }
 
 function addBird(x, y) {
@@ -51,8 +30,7 @@ function addBird(x, y) {
     console.log(`Spawning bird after delay: ${delay}`);
     
     setTimeout(() => {
-        const playArea = document.getElementById('play-area');
-        if (!playArea) {
+        if (!window.cachedElements || !window.cachedElements.playArea) {
             console.error('Play area not found');
             return;
         }
@@ -61,20 +39,20 @@ function addBird(x, y) {
         birdElement.textContent = EMOJIS.BIRD;
         birdElement.classList.add('emoji', 'bird');
         birdElement.style.position = 'absolute';
-        birdElement.style.left = `${(Math.random() * 100)}%`; // Use percentage for responsive positioning
+        birdElement.style.left = `${(Math.random() * 100)}%`;
         birdElement.style.top = `${(Math.random() * 100)}%`;
-        birdElement.style.zIndex = '1'; // Ensure bird is above other elements
-        birdElement.id = `bird-${++birdCounter}`; // Assign unique ID
-        playArea.appendChild(birdElement);
+        birdElement.style.zIndex = '1';
+        birdElement.id = `bird-${++birdCounter}`;
+        window.cachedElements.playArea.appendChild(birdElement);
 
-        birdElement.hunger = 100; // Initialize hunger
-        birdElement.foodConsumed = 0; // Initialize food consumed counter
+        birdElement.hunger = 100;
+        birdElement.foodConsumed = 0;
         setState(birdElement, birdStates.FLYING);
         console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
         
         logEvent(`Bird ${birdElement.id} has spawned.`);
 
-        birdFlightPattern(birdElement, playArea, false);
+        birdFlightPattern(birdElement, window.cachedElements.playArea, false);
     }, delay);
 }
 
@@ -106,7 +84,7 @@ function birdFlightPattern(bird, playArea, isErratic) {
         bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
         bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-        bird.hunger = Math.max(bird.hunger - (isErratic ? 1 : 0.5), 0); // Ensure hunger does not go below 0
+        bird.hunger = Math.max(bird.hunger - (isErratic ? 1 : 0.5), 0);
 
         detectWorms(bird, playArea);
         detectButterflies(bird, playArea);
@@ -146,8 +124,8 @@ function birdLandNearWorm(bird, worm, playArea) {
         bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird, playArea);
 
-        if (!firstBirdLanded) {
-            firstBirdLanded = true;
+        if (!window.firstBirdLanded) {
+            window.firstBirdLanded = true;
             window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
@@ -216,8 +194,8 @@ function birdDescendToGround(bird, playArea) {
         bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird, playArea);
 
-        if (!firstBirdLanded) {
-            firstBirdLanded = true;
+        if (!window.firstBirdLanded) {
+            window.firstBirdLanded = true;
             window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
@@ -371,10 +349,10 @@ function eatWorm(bird, worm) {
         logEvent(`Bird ${bird.id} ate a worm. Food consumed: ${bird.foodConsumed}`);
 
         if (bird.hunger >= 60) {
-            birdAscendAndFlight(bird, playArea);
+            birdAscendAndFlight(bird, window.cachedElements.playArea);
         } else {
             setState(bird, birdStates.WALKING);
-            birdWalkingPattern(bird, playArea);
+            birdWalkingPattern(bird, window.cachedElements.playArea);
         }
 
         checkForNestCreation(bird); // Check for nest creation after eating
@@ -496,30 +474,13 @@ function hatchNest(nestElement) {
 
     logEvent('A nest has hatched! New birds have appeared.');
 
-    const playArea = document.getElementById('play-area');
     const numberOfBirds = Math.floor(Math.random() * 2) + 2; // 2-3 new birds
     for (let i = 0; i < numberOfBirds; i++) {
-        const x = Math.random() * playArea.clientWidth;
-        const y = Math.random() * playArea.clientHeight;
-        addBird(x, y, playArea);
+        const x = Math.random() * window.cachedElements.playArea.clientWidth;
+        const y = Math.random() * window.cachedElements.playArea.clientHeight;
+        addBird(x, y);
     }
 }
 
-function addWormToPanel() {
-    const wormElement = document.createElement('div');
-    wormElement.id = 'worm';
-    wormElement.classList.add('emoji');
-    wormElement.textContent = EMOJIS.WORM;
-    wormElement.setAttribute('draggable', 'true');
-    wormElement.style.zIndex = '0';
-    wormElement.addEventListener('dragstart', (e) => {
-        const draggedElement = e.target;
-        if (!draggedElement.classList.contains('emoji')) return;
-
-        draggedEmoji = draggedElement.textContent;
-        console.log(`Drag start: ${draggedEmoji}`);
-    });
-
-    const sidebar = document.getElementById('sidebar');
-    sidebar.appendChild(wormElement);
-}
+// Expose necessary functions to the global scope
+window.addBird = addBird;
