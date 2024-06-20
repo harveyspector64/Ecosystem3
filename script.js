@@ -88,6 +88,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Handle touch start event for mobile
+    playArea.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element && element.classList.contains('emoji')) {
+            draggedEmoji = element.textContent;
+            console.log(`Touch start: ${draggedEmoji}`);
+        }
+    });
+
+    // Handle touch move event for mobile
+    playArea.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    });
+
     // Handle touch end event for mobile
     playArea.addEventListener('touchend', (e) => {
         if (draggedEmoji) {
