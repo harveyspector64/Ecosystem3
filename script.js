@@ -262,31 +262,37 @@
         addEventLogMessage('A new butterfly has appeared!');
     }
 
-    function moveButterfly(butterfly, targetX, targetY) {
-        function animate() {
-            const currentX = parseFloat(butterfly.style.left);
-            const currentY = parseFloat(butterfly.style.top);
+function moveButterfly(butterfly, targetX, targetY) {
+    let lastTime = performance.now();
+    const speed = 0.05; // Adjust this value to change movement speed
 
-            const angle = Math.random() * Math.PI * 2;
-            const distance = Math.random() * 2 + 3;
+    function animate(currentTime) {
+        const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+        lastTime = currentTime;
 
-            const newX = currentX + distance * Math.cos(angle);
-            const newY = currentY + distance * Math.sin(angle);
+        const currentX = parseFloat(butterfly.style.left);
+        const currentY = parseFloat(butterfly.style.top);
 
-            butterfly.style.left = `${newX}px`;
-            butterfly.style.top = `${newY}px`;
+        const angle = Math.random() * Math.PI * 2;
+        const distance = speed * deltaTime;
 
-            butterfly.hunger -= 0.1;
+        const newX = currentX + distance * Math.cos(angle);
+        const newY = currentY + distance * Math.sin(angle);
 
-            if (butterfly.hunger <= 0) {
-                butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
-            } else {
-                requestAnimationFrame(animate);
-            }
+        butterfly.style.left = `${newX}px`;
+        butterfly.style.top = `${newY}px`;
+
+        butterfly.hunger -= 0.1 * deltaTime;
+
+        if (butterfly.hunger <= 0) {
+            butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
+        } else {
+            requestAnimationFrame(animate);
         }
-
-        requestAnimationFrame(animate);
     }
+
+    requestAnimationFrame(animate);
+}
 
     function updateButterflies() {
         // This function is now empty as individual butterflies are animated in moveButterfly
