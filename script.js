@@ -201,6 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random() * (max - min) + min;
     }
 
+    // Add message to event log
+    function addEventLogMessage(message) {
+        eventMenu.innerHTML = `<div class="event-message">${message}</div>`;
+        console.log(`Event Log: ${message}`);
+    }
+
     // Expose addWormToPanel globally
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
 });
