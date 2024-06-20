@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
-    const sidebar = document.getElementById('sidebar');
+    const emojiPanel = document.getElementById('emoji-panel');
+    const eventMenu = document.getElementById('event-menu');
     let draggedEmoji = null;
     let firstBirdLanded = false;
 
-    // Initialize emojis in the sidebar
+    // Initialize emojis in the emoji panel
     INITIAL_EMOJIS.forEach(item => {
         const element = document.getElementById(item.id);
         if (item.disabled) {
@@ -15,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Use a single dragstart event listener on the sidebar container
-    sidebar.addEventListener('dragstart', (e) => {
+    // Use a single dragstart event listener on the emoji panel container
+    emojiPanel.addEventListener('dragstart', (e) => {
         const draggedElement = e.target;
         if (!draggedElement.classList.contains('emoji')) return;
 
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Drag start: ${draggedEmoji}`);
     });
 
-    // Ensure the worm is correctly added to the sidebar with event listeners
+    // Ensure the worm is correctly added to the emoji panel with event listeners
     function addEmojiToPanel(emoji, id) {
         const emojiElement = document.createElement('div');
         emojiElement.id = id;
@@ -41,8 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Drag start: ${draggedEmoji}`);
         });
 
-        sidebar.appendChild(emojiElement);
-        console.log(`${id} added to sidebar`);
+        emojiPanel.appendChild(emojiElement);
+        console.log(`${id} added to emoji panel`);
     }
 
     // Call this function when the first bird lands
