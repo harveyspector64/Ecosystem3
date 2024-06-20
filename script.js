@@ -21,11 +21,49 @@ const performanceMonitor = {
     }
 };
 
+// Cached DOM elements
+const cachedElements = {
+    playArea: null,
+    emojiPanel: null,
+    eventMenu: null,
+    tree: null
+};
+
+// Butterfly object pool
+const butterflyPool = {
+    pool: [],
+    maxSize: 50,
+
+    get: function() {
+        if (this.pool.length > 0) {
+            return this.pool.pop();
+        } else {
+            const butterfly = document.createElement('div');
+            butterfly.classList.add('emoji', 'butterfly');
+            butterfly.textContent = EMOJIS.BUTTERFLY;
+            return butterfly;
+        }
+    },
+
+    release: function(butterfly) {
+        if (this.pool.length < this.maxSize) {
+            butterfly.remove();
+            this.pool.push(butterfly);
+        } else {
+            butterfly.remove();
+        }
+    }
+};
+
+// Game state
+let selectedEmoji = null;
+let draggedElement = null;
+let firstBirdLanded = false;
+
 // Main game loop
 function gameLoop(currentTime) {
     requestAnimationFrame(gameLoop);
     
-    // Update game state here
     updateButterflies();
     updateBirds();
     updateWorms();
@@ -33,22 +71,17 @@ function gameLoop(currentTime) {
     performanceMonitor.update(currentTime);
 }
 
-// Game state
-let playArea, emojiPanel, eventMenu;
-let selectedEmoji = null;
-let draggedElement = null;
-let firstBirdLanded = false;
-
 document.addEventListener('DOMContentLoaded', () => {
-    playArea = document.getElementById('play-area');
-    emojiPanel = document.getElementById('emoji-panel');
-    eventMenu = document.getElementById('event-menu');
-
     initializeGame();
     requestAnimationFrame(gameLoop);
 });
 
 function initializeGame() {
+    cachedElements.playArea = document.getElementById('play-area');
+    cachedElements.emojiPanel = document.getElementById('emoji-panel');
+    cachedElements.eventMenu = document.getElementById('event-menu');
+    cachedElements.tree = document.getElementById('tree');
+
     initializeEmojis();
     setupEventListeners();
 }
@@ -66,10 +99,10 @@ function initializeEmojis() {
 }
 
 function setupEventListeners() {
-    emojiPanel.addEventListener('dragstart', handleDragStart);
-    playArea.addEventListener('dragover', (e) => e.preventDefault());
-    playArea.addEventListener('drop', handleDrop);
-    emojiPanel.addEventListener('touchstart', handleTouchStart);
+    cachedElements.emojiPanel.addEventListener('dragstart', handleDragStart);
+    cachedElements.playArea.addEventListener('dragover', (e) => e.preventDefault());
+    cachedElements.playArea.addEventListener('drop', handleDrop);
+    cachedElements.emojiPanel.addEventListener('touchstart', handleTouchStart);
     document.addEventListener('touchmove', handleTouchMove);
     document.addEventListener('touchend', handleTouchEnd);
 }
@@ -85,12 +118,12 @@ function handleDragStart(e) {
 
 function handleDrop(e) {
     e.preventDefault();
-    const x = e.clientX - playArea.offsetLeft;
-    const y = e.clientY - playArea.offsetTop;
+    const x = e.clientX - cachedElements.playArea.offsetLeft;
+    const y = e.clientY - cachedElements.playArea.offsetTop;
     const emoji = e.dataTransfer.getData('text/plain');
     if (emoji) {
         console.log(`Placing emoji: ${emoji} at (${x}, ${y})`);
-        addEmojiToPlayArea(emoji, x, y, playArea);
+        addEmojiToPlayArea(emoji, x, y, cachedElements.playArea);
         selectedEmoji = null;
     } else {
         console.log('No emoji selected');
@@ -120,10 +153,10 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if (selectedEmoji && draggedElement) {
         const touch = e.changedTouches[0];
-        const x = touch.clientX - playArea.offsetLeft;
-        const y = touch.clientY - playArea.offsetTop;
+        const x = touch.clientX - cachedElements.playArea.offsetLeft;
+        const y = touch.clientY - cachedElements.playArea.offsetTop;
         console.log(`Placing emoji: ${selectedEmoji} at (${x}, ${y})`);
-        addEmojiToPlayArea(selectedEmoji, x, y, playArea);
+        addEmojiToPlayArea(selectedEmoji, x, y, cachedElements.playArea);
         document.body.removeChild(draggedElement);
         draggedElement = null;
         selectedEmoji = null;
@@ -142,7 +175,7 @@ function addEmojiToPanel(emoji, id) {
     emojiElement.addEventListener('dragstart', handleDragStart);
     emojiElement.addEventListener('touchstart', handleTouchStart);
 
-    emojiPanel.appendChild(emojiElement);
+    cachedElements.emojiPanel.appendChild(emojiElement);
     console.log(`${id} added to emoji panel`);
 }
 
@@ -160,12 +193,12 @@ function addWorm(x, y) {
     wormElement.style.position = 'absolute';
     wormElement.style.left = `${x}px`;
     wormElement.style.top = `${y}px`;
-    playArea.appendChild(wormElement);
+    cachedElements.playArea.appendChild(wormElement);
 
     startWormWiggle(wormElement);
 }
 
-function addEmojiToPlayArea(emoji, x, y, playArea) {
+function addEmojiToPlayArea(emoji, x, y) {
     const emojiElement = document.createElement('div');
     emojiElement.textContent = emoji;
 
@@ -184,54 +217,50 @@ function addEmojiToPlayArea(emoji, x, y, playArea) {
     emojiElement.style.position = 'absolute';
     emojiElement.style.left = `${x}px`;
     emojiElement.style.top = `${y}px`;
-    playArea.appendChild(emojiElement);
+    cachedElements.playArea.appendChild(emojiElement);
 
     console.log(`Added ${emoji} to play area at (${x}, ${y})`);
 
     if (emoji === EMOJIS.BUSH) {
-        addButterflies(x, y, playArea);
+        addButterflies(x, y);
         unlockTree();
     } else if (emoji === EMOJIS.TREE) {
-        addBird(x, y, playArea);
+        addBird(x, y);
     } else if (emoji === EMOJIS.WORM) {
         startWormWiggle(emojiElement);
     }
 }
 
 function unlockTree() {
-    const tree = document.getElementById('tree');
-    tree.classList.remove('disabled');
-    tree.setAttribute('draggable', 'true');
+    cachedElements.tree.classList.remove('disabled');
+    cachedElements.tree.setAttribute('draggable', 'true');
 }
 
-function addButterflies(x, y, playArea) {
+function addButterflies(x, y) {
     const numButterflies = Math.floor(Math.random() * 2) + 1;
     for (let i = 0; i < numButterflies; i++) {
-        setTimeout(() => createButterfly(x, y, playArea), getRandomTime(10, 20) * 1000);
+        setTimeout(() => createButterfly(x, y), getRandomTime(10, 20) * 1000);
     }
 }
 
-function createButterfly(targetX, targetY, playArea) {
-    const butterflyElement = document.createElement('div');
-    butterflyElement.textContent = EMOJIS.BUTTERFLY;
-    butterflyElement.classList.add('emoji', 'butterfly');
+function createButterfly(targetX, targetY) {
+    const butterflyElement = butterflyPool.get();
     butterflyElement.style.position = 'absolute';
-    butterflyElement.style.left = getRandomEdgePosition('x', playArea) + 'px';
-    butterflyElement.style.top = getRandomEdgePosition('y', playArea) + 'px';
-    playArea.appendChild(butterflyElement);
+    butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
+    butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
+    cachedElements.playArea.appendChild(butterflyElement);
 
     butterflyElement.hunger = 100;
-    moveButterfly(butterflyElement, targetX, targetY, playArea);
+    moveButterfly(butterflyElement, targetX, targetY);
 }
 
-function updateButterflies() {
-    const butterflies = document.querySelectorAll('.butterfly');
-    butterflies.forEach(butterfly => {
+function moveButterfly(butterfly, targetX, targetY) {
+    function animate() {
         const currentX = parseFloat(butterfly.style.left);
         const currentY = parseFloat(butterfly.style.top);
 
         const angle = Math.random() * Math.PI * 2;
-        const distance = Math.random() * 2 + 3; // Smaller movement for smoother animation
+        const distance = Math.random() * 2 + 3;
 
         const newX = currentX + distance * Math.cos(angle);
         const newY = currentY + distance * Math.sin(angle);
@@ -239,15 +268,23 @@ function updateButterflies() {
         butterfly.style.left = `${newX}px`;
         butterfly.style.top = `${newY}px`;
 
-        butterfly.hunger -= 0.1; // Decrease hunger more slowly
+        butterfly.hunger -= 0.1;
 
         if (butterfly.hunger <= 0) {
-            butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top), playArea);
+            butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
+        } else {
+            requestAnimationFrame(animate);
         }
-    });
+    }
+
+    requestAnimationFrame(animate);
 }
 
-function butterflyLand(butterfly, targetX, targetY, playArea) {
+function updateButterflies() {
+    // This function is now empty as individual butterflies are animated in moveButterfly
+}
+
+function butterflyLand(butterfly, targetX, targetY) {
     const bushes = document.querySelectorAll('.emoji');
     let nearestBush = null;
     let minDistance = Infinity;
@@ -270,16 +307,19 @@ function butterflyLand(butterfly, targetX, targetY, playArea) {
         butterfly.style.top = nearestBush.style.top;
 
         setTimeout(() => {
-            butterfly.hunger = 100;
+            butterflyPool.release(butterfly);
+            createButterfly(parseFloat(nearestBush.style.left), parseFloat(nearestBush.style.top));
         }, getRandomTime(5, 10) * 1000);
+    } else {
+        butterflyPool.release(butterfly);
     }
 }
 
-function getRandomEdgePosition(axis, playArea) {
+function getRandomEdgePosition(axis) {
     if (axis === 'x') {
-        return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20;
+        return Math.random() > 0.5 ? 0 : cachedElements.playArea.clientWidth - 20;
     } else {
-        return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
+        return Math.random() > 0.5 ? 0 : cachedElements.playArea.clientHeight - 20;
     }
 }
 
@@ -288,7 +328,7 @@ function getRandomTime(min, max) {
 }
 
 function addEventLogMessage(message) {
-    eventMenu.innerHTML = `<div class="event-message">${message}</div>`;
+    cachedElements.eventMenu.innerHTML = `<div class="event-message">${message}</div>`;
     console.log(`BREAKING NEWS: ${message}`);
 }
 
