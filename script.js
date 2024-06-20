@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emojiPanel = document.getElementById('emoji-panel');
     const eventMenu = document.getElementById('event-menu');
     let selectedEmoji = null;
+    let draggedElement = null;
     let firstBirdLanded = false;
 
     // Initialize emojis in the emoji panel
@@ -50,17 +51,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const touchedElement = e.target;
         if (touchedElement && touchedElement.classList.contains('emoji')) {
             selectedEmoji = touchedElement.textContent;
+            draggedElement = touchedElement.cloneNode(true);
+            draggedElement.style.position = 'absolute';
+            draggedElement.style.pointerEvents = 'none';
+            document.body.appendChild(draggedElement);
             console.log(`Emoji touched: ${selectedEmoji}`);
         }
     });
 
-    playArea.addEventListener('touchend', (e) => {
-        if (selectedEmoji) {
+    document.addEventListener('touchmove', (e) => {
+        if (draggedElement) {
+            const touch = e.touches[0];
+            draggedElement.style.left = `${touch.clientX - 15}px`;
+            draggedElement.style.top = `${touch.clientY - 15}px`;
+        }
+    });
+
+    document.addEventListener('touchend', (e) => {
+        if (selectedEmoji && draggedElement) {
             const touch = e.changedTouches[0];
             const x = touch.clientX - playArea.offsetLeft;
             const y = touch.clientY - playArea.offsetTop;
             console.log(`Placing emoji: ${selectedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(selectedEmoji, x, y, playArea);
+            document.body.removeChild(draggedElement);
+            draggedElement = null;
             selectedEmoji = null;
         } else {
             console.log('No emoji selected');
@@ -89,6 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const touchedElement = e.target;
             if (touchedElement && touchedElement.classList.contains('emoji')) {
                 selectedEmoji = touchedElement.textContent;
+                draggedElement = touchedElement.cloneNode(true);
+                draggedElement.style.position = 'absolute';
+                draggedElement.style.pointerEvents = 'none';
+                document.body.appendChild(draggedElement);
                 console.log(`Emoji touched: ${selectedEmoji}`);
             }
         });
