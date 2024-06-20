@@ -229,80 +229,141 @@ window.cachedElements = {};
         }
     }
 
-    function createButterfly(targetX, targetY) {
-        const butterflyElement = butterflyPool.get();
-        butterflyElement.style.position = 'absolute';
-        butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
-        butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
-        window.cachedElements.playArea.appendChild(butterflyElement);
+function moveButterfly(butterfly) {
+    const states = {
+        EXPLORING: 'exploring',
+        HOVERING: 'hovering',
+        ATTRACTED: 'attracted',
+        RESTING: 'resting'
+    };
 
-        butterflyElement.hunger = 100;
-        moveButterfly(butterflyElement, targetX, targetY);
+    let currentState = states.EXPLORING;
+    let direction = Math.random() * Math.PI * 2;
+    let stateTimer = 0;
+    let attractedTo = null;
 
-        addEventLogMessage('A new butterfly has appeared!');
-    }
-
-    function moveButterfly(butterfly, targetX, targetY) {
-        const moveInterval = setInterval(() => {
-            const currentX = parseFloat(butterfly.style.left);
-            const currentY = parseFloat(butterfly.style.top);
-
-            const angle = Math.random() * Math.PI * 2; // Random angle
-            const distance = Math.random() * 5 + 2; // Smaller distance for smoother movement
-
-            const newX = currentX + distance * Math.cos(angle);
-            const newY = currentY + distance * Math.sin(angle);
-
-            butterfly.style.left = `${newX}px`;
-            butterfly.style.top = `${newY}px`;
-
-            butterfly.hunger -= 0.1; // Decrease hunger over time
-
-            if (butterfly.hunger <= 0) {
-                clearInterval(moveInterval);
-                butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
+    function updateState() {
+        stateTimer--;
+        if (stateTimer <= 0) {
+            switch (currentState) {
+                case states.EXPLORING:
+                    currentState = Math.random() < 0.3 ? states.HOVERING : states.EXPLORING;
+                    stateTimer = currentState === states.HOVERING ? getRandomTime(3, 7) * 10 : getRandomTime(10, 20) * 10;
+                    break;
+                case states.HOVERING:
+                    currentState = states.EXPLORING;
+                    stateTimer = getRandomTime(10, 20) * 10;
+                    break;
+                case states.ATTRACTED:
+                    if (!attractedTo) {
+                        currentState = states.EXPLORING;
+                        stateTimer = getRandomTime(10, 20) * 10;
+                    }
+                    break;
+                case states.RESTING:
+                    currentState = Math.random() < 0.7 ? states.EXPLORING : states.HOVERING;
+                    stateTimer = getRandomTime(5, 15) * 10;
+                    break;
             }
-        }, 100); // Faster interval for more frequent updates
-
-        // Clear the interval after a certain time to prevent butterflies from flying indefinitely
-        setTimeout(() => {
-            clearInterval(moveInterval);
-            butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
-        }, 30000); // Land after 30 seconds of flight
+        }
     }
 
-    function butterflyLand(butterfly, targetX, targetY) {
-        const bushes = document.querySelectorAll('.emoji');
-        let nearestBush = null;
-        let minDistance = Infinity;
+    function move() {
+        const currentX = parseFloat(butterfly.style.left);
+        const currentY = parseFloat(butterfly.style.top);
+        let newX, newY, speed;
 
-        bushes.forEach(bush => {
-            if (bush.textContent === EMOJIS.BUSH) {
-                const bushX = parseFloat(bush.style.left);
-                const bushY = parseFloat(bush.style.top);
-                const distance = Math.sqrt((bushX - targetX) ** 2 + (bushY - targetY) ** 2);
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestBush = bush;
+        switch (currentState) {
+            case states.EXPLORING:
+                speed = 2;
+                direction += (Math.random() - 0.5) * 0.5; // Slight direction change
+                newX = currentX + Math.cos(direction) * speed;
+                newY = currentY + Math.sin(direction) * speed;
+                break;
+            case states.HOVERING:
+                speed = 0.5;
+                newX = currentX + (Math.random() - 0.5) * speed;
+                newY = currentY + (Math.random() - 0.5) * speed;
+                break;
+            case states.ATTRACTED:
+                speed = 1;
+                const attractedX = parseFloat(attractedTo.style.left);
+                const attractedY = parseFloat(attractedTo.style.top);
+                const dx = attractedX - currentX;
+                const dy = attractedY - currentY;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < 5) {
+                    currentState = states.RESTING;
+                    stateTimer = getRandomTime(10, 30) * 10;
+                    newX = attractedX;
+                    newY = attractedY;
+                } else {
+                    newX = currentX + (dx / distance) * speed;
+                    newY = currentY + (dy / distance) * speed;
                 }
-            }
-        });
-
-        if (nearestBush) {
-            butterfly.style.left = nearestBush.style.left;
-            butterfly.style.top = nearestBush.style.top;
-
-            setTimeout(() => {
-                butterflyPool.release(butterfly);
-                createButterfly(parseFloat(nearestBush.style.left), parseFloat(nearestBush.style.top));
-            }, getRandomTime(5, 10) * 1000);
-        } else {
-            butterflyPool.release(butterfly);
+                break;
+            case states.RESTING:
+                newX = currentX;
+                newY = currentY;
+                break;
         }
 
-        addEventLogMessage('A butterfly has landed on a bush!');
+        // Boundary check
+        const maxX = window.cachedElements.playArea.clientWidth - 20;
+        const maxY = window.cachedElements.playArea.clientHeight - 20;
+        if (newX <= 0 || newX >= maxX || newY <= 0 || newY >= maxY) {
+            direction = Math.atan2(maxY/2 - currentY, maxX/2 - currentX);
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+        }
+
+        butterfly.style.left = `${newX}px`;
+        butterfly.style.top = `${newY}px`;
+
+        // Check for nearby flower bushes
+        if (currentState !== states.RESTING && Math.random() < 0.1) {
+            const nearbyBush = findNearbyBush(newX, newY);
+            if (nearbyBush) {
+                currentState = states.ATTRACTED;
+                attractedTo = nearbyBush;
+                stateTimer = getRandomTime(5, 10) * 10;
+            }
+        }
     }
+
+    function findNearbyBush(x, y) {
+        const bushes = document.querySelectorAll('.emoji.bush');
+        for (let bush of bushes) {
+            const bushX = parseFloat(bush.style.left);
+            const bushY = parseFloat(bush.style.top);
+            const distance = Math.sqrt((x - bushX)**2 + (y - bushY)**2);
+            if (distance < 100) { // Detection radius
+                return bush;
+            }
+        }
+        return null;
+    }
+
+    function animate() {
+        updateState();
+        move();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+}
+
+function createButterfly(targetX, targetY) {
+    const butterflyElement = butterflyPool.get();
+    butterflyElement.style.position = 'absolute';
+    butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
+    butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
+    window.cachedElements.playArea.appendChild(butterflyElement);
+
+    moveButterfly(butterflyElement);
+
+    addEventLogMessage('A new butterfly has appeared!');
+}
 
     function addEventLogMessage(message) {
         const eventMenu = document.getElementById('event-menu');
