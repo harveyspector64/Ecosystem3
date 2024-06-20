@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const playArea = document.getElementById('play-area');
     const emojiPanel = document.getElementById('emoji-panel');
     const eventMenu = document.getElementById('event-menu');
-    let draggedEmoji = null;
     let selectedEmoji = null;
     let firstBirdLanded = false;
 
@@ -17,32 +16,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Use a single dragstart event listener on the emoji panel container
-    emojiPanel.addEventListener('dragstart', (e) => {
-        const draggedElement = e.target;
-        if (!draggedElement.classList.contains('emoji')) return;
-
-        draggedEmoji = draggedElement.textContent;
-        console.log(`Drag start: ${draggedEmoji}`);
-    });
-
-    // Handle touch start event for mobile in the emoji panel
-    emojiPanel.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        const element = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (element && element.classList.contains('emoji')) {
-            selectedEmoji = element.textContent;
+    // Handle click event for selecting emojis
+    emojiPanel.addEventListener('click', (e) => {
+        const clickedElement = e.target;
+        if (clickedElement && clickedElement.classList.contains('emoji')) {
+            selectedEmoji = clickedElement.textContent;
             console.log(`Emoji selected: ${selectedEmoji}`);
         }
     });
 
-    // Handle touch end event for mobile in the play area
-    playArea.addEventListener('touchend', (e) => {
+    // Handle click event in the play area
+    playArea.addEventListener('click', (e) => {
         if (selectedEmoji) {
-            const touch = e.changedTouches[0];
-            const x = touch.clientX - playArea.offsetLeft;
-            const y = touch.clientY - playArea.offsetTop;
-            console.log(`Touch end: ${selectedEmoji} at (${x}, ${y})`);
+            const x = e.clientX - playArea.offsetLeft;
+            const y = e.clientY - playArea.offsetTop;
+            console.log(`Placing emoji: ${selectedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(selectedEmoji, x, y, playArea);
             selectedEmoji = null;
         } else {
@@ -58,21 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
         emojiElement.textContent = emoji;
         emojiElement.setAttribute('draggable', 'true');
 
-        // Attach the same dragstart listener
-        emojiElement.addEventListener('dragstart', (e) => {
-            const draggedElement = e.target;
-            if (!draggedElement.classList.contains('emoji')) return;
-
-            draggedEmoji = draggedElement.textContent;
-            console.log(`Drag start: ${draggedEmoji}`);
-        });
-
-        // Attach the same touchstart listener
-        emojiElement.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            const element = document.elementFromPoint(touch.clientX, touch.clientY);
-            if (element && element.classList.contains('emoji')) {
-                selectedEmoji = element.textContent;
+        // Attach the same click listener
+        emojiElement.addEventListener('click', (e) => {
+            const clickedElement = e.target;
+            if (clickedElement && clickedElement.classList.contains('emoji')) {
+                selectedEmoji = clickedElement.textContent;
                 console.log(`Emoji selected: ${selectedEmoji}`);
             }
         });
@@ -99,30 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
         wormElement.style.top = `${y}px`;
         playArea.appendChild(wormElement);
     }
-
-    // Handle drag over event in play area
-    playArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        console.log('Drag over play area');
-    });
-
-    // Handle drop event in play area
-    playArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (draggedEmoji) {
-            const x = e.clientX - playArea.offsetLeft;
-            const y = e.clientY - playArea.offsetTop;
-            console.log(`Drop: ${draggedEmoji} at (${x}, ${y})`);
-            if (draggedEmoji === EMOJIS.WORM) {
-                addWorm(x, y);
-            } else {
-                addEmojiToPlayArea(draggedEmoji, x, y, playArea);
-            }
-            draggedEmoji = null;
-        } else {
-            console.log('No dragged emoji');
-        }
-    });
 
     function addEmojiToPlayArea(emoji, x, y, playArea) {
         const emojiElement = document.createElement('div');
