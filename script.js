@@ -678,7 +678,7 @@ window.birds = [];
         document.addEventListener('touchend', handleTouchEnd);
     }
 
-    // Expose necessary functions to the global scope
+// Expose necessary functions to the global scope
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
     window.addBird = addBird;
     window.startWormWiggle = startWormWiggle;
