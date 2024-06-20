@@ -123,7 +123,7 @@ function handleDrop(e) {
     const emoji = e.dataTransfer.getData('text/plain');
     if (emoji) {
         console.log(`Placing emoji: ${emoji} at (${x}, ${y})`);
-        addEmojiToPlayArea(emoji, x, y, cachedElements.playArea);
+        addEmojiToPlayArea(emoji, x, y);
         selectedEmoji = null;
     } else {
         console.log('No emoji selected');
@@ -156,7 +156,7 @@ function handleTouchEnd(e) {
         const x = touch.clientX - cachedElements.playArea.offsetLeft;
         const y = touch.clientY - cachedElements.playArea.offsetTop;
         console.log(`Placing emoji: ${selectedEmoji} at (${x}, ${y})`);
-        addEmojiToPlayArea(selectedEmoji, x, y, cachedElements.playArea);
+        addEmojiToPlayArea(selectedEmoji, x, y);
         document.body.removeChild(draggedElement);
         draggedElement = null;
         selectedEmoji = null;
@@ -229,6 +229,20 @@ function addEmojiToPlayArea(emoji, x, y) {
     } else if (emoji === EMOJIS.WORM) {
         startWormWiggle(emojiElement);
     }
+
+    // Add event log message
+    addEventLogMessage(`A ${getEmojiName(emoji)} has been added to the ecosystem!`);
+}
+
+function getEmojiName(emoji) {
+    switch(emoji) {
+        case EMOJIS.BUSH: return 'bush';
+        case EMOJIS.TREE: return 'tree';
+        case EMOJIS.BUTTERFLY: return 'butterfly';
+        case EMOJIS.BIRD: return 'bird';
+        case EMOJIS.WORM: return 'worm';
+        default: return 'creature';
+    }
 }
 
 function unlockTree() {
@@ -252,6 +266,9 @@ function createButterfly(targetX, targetY) {
 
     butterflyElement.hunger = 100;
     moveButterfly(butterflyElement, targetX, targetY);
+
+    // Add event log message
+    addEventLogMessage('A new butterfly has appeared!');
 }
 
 function moveButterfly(butterfly, targetX, targetY) {
@@ -313,6 +330,9 @@ function butterflyLand(butterfly, targetX, targetY) {
     } else {
         butterflyPool.release(butterfly);
     }
+
+    // Add event log message
+    addEventLogMessage('A butterfly has landed on a bush!');
 }
 
 function getRandomEdgePosition(axis) {
@@ -328,7 +348,17 @@ function getRandomTime(min, max) {
 }
 
 function addEventLogMessage(message) {
-    cachedElements.eventMenu.innerHTML = `<div class="event-message">${message}</div>`;
+    const eventMessageElement = document.createElement('div');
+    eventMessageElement.className = 'event-message';
+    eventMessageElement.textContent = message;
+    
+    cachedElements.eventMenu.appendChild(eventMessageElement);
+    
+    // Keep only the last 5 messages
+    while (cachedElements.eventMenu.children.length > 5) {
+        cachedElements.eventMenu.removeChild(cachedElements.eventMenu.firstChild);
+    }
+    
     console.log(`BREAKING NEWS: ${message}`);
 }
 
