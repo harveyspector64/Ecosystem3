@@ -1,4 +1,3 @@
-
 const playArea = document.getElementById('play-area');
 let firstBirdLanded = false;
 
@@ -68,7 +67,7 @@ function birdFlightPattern(bird, playArea, isErratic) {
         bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
         bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-        bird.hunger -= isErratic ? 1 : 0.5;
+        bird.hunger = Math.max(bird.hunger - (isErratic ? 1 : 0.5), 0);
 
         detectWorms(bird, playArea);
         detectButterflies(bird, playArea);
@@ -236,7 +235,7 @@ function birdWalkingPattern(bird, playArea) {
                     bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
                     bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-                    bird.style.transition = 'top 0.3s, left 0.3s';
+                    bird.style.transition = 'top 0.2s, left 0.2s';
 
                     console.log('Bird walked to', bird.style.left, bird.style.top);
 
@@ -244,7 +243,7 @@ function birdWalkingPattern(bird, playArea) {
                 } else {
                     clearInterval(stepInterval);
                     if (bird.currentState === birdStates.WALKING) {
-                        const pauseDuration = Math.random() * 5000 + 2000;
+                        const pauseDuration = Math.random() * 1000 + 500; // Longer pauses
                         bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
                         console.log(`Bird pausing for ${pauseDuration}ms`);
                         setTimeout(() => {
@@ -257,7 +256,7 @@ function birdWalkingPattern(bird, playArea) {
                         }, pauseDuration);
                     }
                 }
-            }, 500);
+            }, 300); // Adjusted for quicker movement
         };
 
         performSteps();
@@ -275,7 +274,7 @@ function birdMoveToWorm(bird, worm, playArea) {
     const dy = wormRect.top - birdRect.top;
     const angle = Math.atan2(dy, dx);
 
-    const speed = 5;
+    const speed = 5; // Adjusted speed
     let moveTime = 0;
 
     const moveInterval = setInterval(() => {
@@ -295,14 +294,14 @@ function birdMoveToWorm(bird, worm, playArea) {
         const currentX = parseFloat(bird.style.left);
         const currentY = parseFloat(bird.style.top);
 
-        const distance = Math.random() * 5 + 2;
+        const distance = Math.random() * 10 + 5; // Increased distance for each step
         const newX = currentX + distance * Math.cos(angle);
         const newY = currentY + distance * Math.sin(angle);
 
         bird.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
         bird.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
 
-        bird.style.transition = 'top 0.3s, left 0.3s';
+        bird.style.transition = 'top 0.2s, left 0.2s';
 
         const newBirdRect = bird.getBoundingClientRect();
 
@@ -311,7 +310,7 @@ function birdMoveToWorm(bird, worm, playArea) {
             eatWorm(bird, worm);
         } else if (moveTime % 3000 === 0) { // Pause every 3 seconds
             clearInterval(moveInterval);
-            const pauseDuration = Math.random() * 1000 + 500; // 0.5 to 1.5 seconds pause
+            const pauseDuration = Math.random() * 1500 + 1000; // 1 to 2.5 seconds pause
             bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
             console.log(`Bird pausing while moving to worm for ${pauseDuration}ms`);
             setTimeout(() => {
@@ -339,7 +338,7 @@ function eatWorm(bird, worm) {
 }
 
 function detectWorms(bird, playArea) {
-    if (bird.currentState === birdStates.WALKING) {
+    if (bird.currentState === birdStates.WALKING || bird.currentState === birdStates.DESCENDING) {
         const worms = document.querySelectorAll('.worm');
         let nearestWorm = null;
         let minDistance = Infinity;
@@ -431,4 +430,4 @@ function addWormToPanel() {
 
     const sidebar = document.getElementById('sidebar');
     sidebar.appendChild(wormElement);
-} 
+}
