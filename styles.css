@@ -4,6 +4,7 @@ body {
     height: 100vh;
     font-family: Arial, sans-serif;
     overflow: hidden; /* Prevent scrolling */
+    touch-action: manipulation; /* Prevent double-tap zoom */
 }
 
 #container {
@@ -13,29 +14,31 @@ body {
 }
 
 #sidebar {
-    display: flex;
-    flex-direction: column;
-    width: 20%; /* Start with 20%, adjust as needed */
-    max-width: 200px; /* Limit max width for larger screens */
+    width: 20%; /* Adjust for a better fit on mobile */
     background-color: #f0f0f0;
     padding: 10px;
     border-right: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribute space evenly */
     overflow-y: auto; /* Scrollable sidebar */
 }
 
 #emoji-panel {
-    flex: 1; /* Take remaining space in sidebar */
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-y: auto; /* Scrollable emoji panel */
 }
 
 #event-menu {
-    background-color: #f0f0f0;
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 30%;
+    overflow-y: auto; /* Scrollable event menu */
     border-top: 1px solid #ccc;
-    overflow-y: auto;
-    height: 150px; /* Fixed height, adjust as needed */
+    margin-top: 10px;
 }
 
 #play-area {
@@ -43,14 +46,12 @@ body {
     background-color: #ffffff;
     position: relative;
     overflow: hidden;
-    touch-action: none; /* Prevent default touch actions */
 }
 
 .emoji {
     font-size: 20px; /* Size for panel emojis */
     cursor: pointer;
     margin: 10px 0;
-    touch-action: none; /* Prevent touch actions on emojis */
 }
 
 .disabled {
@@ -75,55 +76,15 @@ body {
     font-size: 10px; /* Smaller size for worms */
 }
 
-/* Adjustments for smaller screens */
-@media (max-width: 768px) {
-    #sidebar {
-        width: 30%; /* Adjust for smaller screens */
-    }
-
-    #event-menu {
-        height: 100px; /* Reduce height on smaller screens */
-    }
-
-    .emoji {
-        font-size: 18px; /* Smaller emoji size */
-    }
-
-    .tree {
-        font-size: 60px; /* Adjust tree size for smaller screens */
-    }
-
-    .bird {
-        font-size: 25px; /* Adjust bird size for smaller screens */
-    }
-
-    .worm {
-        font-size: 8px; /* Adjust worm size for smaller screens */
-    }
+/* Prevent default touch actions */
+body, #play-area, .emoji {
+    touch-action: manipulation;
 }
 
-@media (max-width: 480px) {
-    #sidebar {
-        width: 40%; /* Further adjust for very small screens */
-    }
-
-    #event-menu {
-        height: 80px; /* Further reduce height */
-    }
-
-    .emoji {
-        font-size: 16px; /* Smaller emoji size */
-    }
-
-    .tree {
-        font-size: 50px; /* Further adjust tree size */
-    }
-
+/* Override bird emoji based on platform */
+@supports (-webkit-appearance: none) and (stroke-color:transparent) {
+    /* iOS and macOS */
     .bird {
-        font-size: 20px; /* Further adjust bird size */
-    }
-
-    .worm {
-        font-size: 6px; /* Further adjust worm size */
+        content: '🦅'; /* Use crow emoji for Apple */
     }
 }
