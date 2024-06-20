@@ -1,4 +1,4 @@
-// At the top of your script.js file, outside the IIFE
+// Global cached elements
 window.cachedElements = {};
 
 // Wrap the entire game in an Immediately Invoked Function Expression (IIFE)
@@ -26,8 +26,13 @@ window.cachedElements = {};
         }
     };
 
-    // Cached DOM elements
-    const cachedElements = {};
+    // Initialize cached elements
+    window.cachedElements = {
+        playArea: null,
+        emojiPanel: null,
+        eventMenu: null,
+        tree: null
+    };
 
     // Butterfly object pool
     const butterflyPool = {
@@ -72,10 +77,10 @@ window.cachedElements = {};
     }
 
     function initializeGame() {
-        cachedElements.playArea = document.getElementById('play-area');
-        cachedElements.emojiPanel = document.getElementById('emoji-panel');
-        cachedElements.eventMenu = document.getElementById('event-menu');
-        cachedElements.tree = document.getElementById('tree');
+        window.cachedElements.playArea = document.getElementById('play-area');
+        window.cachedElements.emojiPanel = document.getElementById('emoji-panel');
+        window.cachedElements.eventMenu = document.getElementById('event-menu');
+        window.cachedElements.tree = document.getElementById('tree');
 
         initializeEmojis();
         setupEventListeners();
@@ -95,10 +100,10 @@ window.cachedElements = {};
     }
 
     function setupEventListeners() {
-        cachedElements.emojiPanel.addEventListener('dragstart', handleDragStart);
-        cachedElements.playArea.addEventListener('dragover', (e) => e.preventDefault());
-        cachedElements.playArea.addEventListener('drop', handleDrop);
-        cachedElements.emojiPanel.addEventListener('touchstart', handleTouchStart);
+        window.cachedElements.emojiPanel.addEventListener('dragstart', handleDragStart);
+        window.cachedElements.playArea.addEventListener('dragover', (e) => e.preventDefault());
+        window.cachedElements.playArea.addEventListener('drop', handleDrop);
+        window.cachedElements.emojiPanel.addEventListener('touchstart', handleTouchStart);
         document.addEventListener('touchmove', handleTouchMove);
         document.addEventListener('touchend', handleTouchEnd);
     }
@@ -114,8 +119,8 @@ window.cachedElements = {};
 
     function handleDrop(e) {
         e.preventDefault();
-        const x = e.clientX - cachedElements.playArea.offsetLeft;
-        const y = e.clientY - cachedElements.playArea.offsetTop;
+        const x = e.clientX - window.cachedElements.playArea.offsetLeft;
+        const y = e.clientY - window.cachedElements.playArea.offsetTop;
         const emoji = e.dataTransfer.getData('text/plain');
         if (emoji) {
             console.log(`Placing emoji: ${emoji} at (${x}, ${y})`);
@@ -149,8 +154,8 @@ window.cachedElements = {};
     function handleTouchEnd(e) {
         if (selectedEmoji && draggedElement) {
             const touch = e.changedTouches[0];
-            const x = touch.clientX - cachedElements.playArea.offsetLeft;
-            const y = touch.clientY - cachedElements.playArea.offsetTop;
+            const x = touch.clientX - window.cachedElements.playArea.offsetLeft;
+            const y = touch.clientY - window.cachedElements.playArea.offsetTop;
             console.log(`Placing emoji: ${selectedEmoji} at (${x}, ${y})`);
             addEmojiToPlayArea(selectedEmoji, x, y);
             document.body.removeChild(draggedElement);
@@ -171,7 +176,7 @@ window.cachedElements = {};
         emojiElement.addEventListener('dragstart', handleDragStart);
         emojiElement.addEventListener('touchstart', handleTouchStart);
 
-        cachedElements.emojiPanel.appendChild(emojiElement);
+        window.cachedElements.emojiPanel.appendChild(emojiElement);
         console.log(`${id} added to emoji panel`);
     }
 
@@ -189,7 +194,7 @@ window.cachedElements = {};
         wormElement.style.position = 'absolute';
         wormElement.style.left = `${x}px`;
         wormElement.style.top = `${y}px`;
-        cachedElements.playArea.appendChild(wormElement);
+        window.cachedElements.playArea.appendChild(wormElement);
 
         startWormWiggle(wormElement);
     }
@@ -213,7 +218,7 @@ window.cachedElements = {};
         emojiElement.style.position = 'absolute';
         emojiElement.style.left = `${x}px`;
         emojiElement.style.top = `${y}px`;
-        cachedElements.playArea.appendChild(emojiElement);
+        window.cachedElements.playArea.appendChild(emojiElement);
 
         console.log(`Added ${emoji} to play area at (${x}, ${y})`);
 
@@ -241,8 +246,8 @@ window.cachedElements = {};
     }
 
     function unlockTree() {
-        cachedElements.tree.classList.remove('disabled');
-        cachedElements.tree.setAttribute('draggable', 'true');
+        window.cachedElements.tree.classList.remove('disabled');
+        window.cachedElements.tree.setAttribute('draggable', 'true');
     }
 
     function addButterflies(x, y) {
@@ -257,7 +262,7 @@ window.cachedElements = {};
         butterflyElement.style.position = 'absolute';
         butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
         butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
-        cachedElements.playArea.appendChild(butterflyElement);
+        window.cachedElements.playArea.appendChild(butterflyElement);
 
         butterflyElement.hunger = 100;
         moveButterfly(butterflyElement, targetX, targetY);
@@ -265,37 +270,37 @@ window.cachedElements = {};
         addEventLogMessage('A new butterfly has appeared!');
     }
 
-function moveButterfly(butterfly, targetX, targetY) {
-    let lastTime = performance.now();
-    const speed = 0.05; // Adjust this value to change movement speed
+    function moveButterfly(butterfly, targetX, targetY) {
+        let lastTime = performance.now();
+        const speed = 0.05; // Adjust this value to change movement speed
 
-    function animate(currentTime) {
-        const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
-        lastTime = currentTime;
+        function animate(currentTime) {
+            const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+            lastTime = currentTime;
 
-        const currentX = parseFloat(butterfly.style.left);
-        const currentY = parseFloat(butterfly.style.top);
+            const currentX = parseFloat(butterfly.style.left);
+            const currentY = parseFloat(butterfly.style.top);
 
-        const angle = Math.random() * Math.PI * 2;
-        const distance = speed * deltaTime;
+            const angle = Math.random() * Math.PI * 2;
+            const distance = speed * deltaTime;
 
-        const newX = currentX + distance * Math.cos(angle);
-        const newY = currentY + distance * Math.sin(angle);
+            const newX = currentX + distance * Math.cos(angle);
+            const newY = currentY + distance * Math.sin(angle);
 
-        butterfly.style.left = `${newX}px`;
-        butterfly.style.top = `${newY}px`;
+            butterfly.style.left = `${newX}px`;
+            butterfly.style.top = `${newY}px`;
 
-        butterfly.hunger -= 0.1 * deltaTime;
+            butterfly.hunger -= 0.1 * deltaTime;
 
-        if (butterfly.hunger <= 0) {
-            butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
-        } else {
-            requestAnimationFrame(animate);
+            if (butterfly.hunger <= 0) {
+                butterflyLand(butterfly, parseFloat(butterfly.style.left), parseFloat(butterfly.style.top));
+            } else {
+                requestAnimationFrame(animate);
+            }
         }
-    }
 
-    requestAnimationFrame(animate);
-}
+        requestAnimationFrame(animate);
+    }
 
     function updateButterflies() {
         // This function is now empty as individual butterflies are animated in moveButterfly
@@ -336,9 +341,9 @@ function moveButterfly(butterfly, targetX, targetY) {
 
     function getRandomEdgePosition(axis) {
         if (axis === 'x') {
-            return Math.random() > 0.5 ? 0 : cachedElements.playArea.clientWidth - 20;
+            return Math.random() > 0.5 ? 0 : window.cachedElements.playArea.clientWidth - 20;
         } else {
-            return Math.random() > 0.5 ? 0 : cachedElements.playArea.clientHeight - 20;
+            return Math.random() > 0.5 ? 0 : window.cachedElements.playArea.clientHeight - 20;
         }
     }
 
@@ -346,26 +351,26 @@ function moveButterfly(butterfly, targetX, targetY) {
         return Math.random() * (max - min) + min;
     }
 
-function addEventLogMessage(message) {
-    const eventMenu = document.getElementById('event-menu');
-    if (!eventMenu) {
-        console.error('Event menu not found');
-        return;
-    }
+    function addEventLogMessage(message) {
+        const eventMenu = document.getElementById('event-menu');
+        if (!eventMenu) {
+            console.error('Event menu not found');
+            return;
+        }
 
-    const eventMessageElement = document.createElement('div');
-    eventMessageElement.className = 'event-message';
-    eventMessageElement.textContent = message;
-    
-    eventMenu.appendChild(eventMessageElement);
-    
-    // Keep only the last 5 messages
-    while (eventMenu.children.length > 6) { // +1 for the header
-        eventMenu.removeChild(eventMenu.children[1]); // Remove the oldest message, not the header
+        const eventMessageElement = document.createElement('div');
+        eventMessageElement.className = 'event-message';
+        eventMessageElement.textContent = message;
+        
+        eventMenu.appendChild(eventMessageElement);
+        
+        // Keep only the last 5 messages
+        while (eventMenu.children.length > 6) { // +1 for the header
+            eventMenu.removeChild(eventMenu.children[1]); // Remove the oldest message, not the header
+        }
+        
+        console.log(`BREAKING NEWS: ${message}`);
     }
-    
-    console.log(`BREAKING NEWS: ${message}`);
-}
 
     function updateBirds() {
         // Implement bird movement and behavior here
@@ -377,8 +382,9 @@ function addEventLogMessage(message) {
 
     // Expose necessary functions to the global scope
     window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
-    window.startWormWiggle = startWormWiggle; // Make sure this function is defined
-    window.addBird = addBird; // Make sure this function is defined
+    window.addBird = addBird;
+    window.startWormWiggle = startWormWiggle;
+    window.addEventLogMessage = addEventLogMessage;
 
     // Initialize the game when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', initializeGame);
