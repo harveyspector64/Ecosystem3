@@ -14,8 +14,8 @@ body {
 }
 
 #sidebar {
-    width: 15%;
-    min-width: 150px;
+    width: 20%;
+    min-width: 200px;
     background-color: #f0f0f0;
     padding: 10px;
     display: flex;
@@ -25,17 +25,16 @@ body {
 }
 
 #emoji-panel {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+    gap: 10px;
 }
 
 .emoji {
-    font-size: 1.5em;
+    font-size: 2em;
     cursor: pointer;
     transition: transform 0.2s;
-    text-align: center;
 }
 
 .emoji:hover {
@@ -75,30 +74,16 @@ body {
     overflow: hidden;
 }
 
-.play-area-emoji {
-    position: absolute;
-    transition: all 0.3s ease;
-}
-
-.tree {
-    font-size: 3em;
-}
-
-.flowering-bush {
-    font-size: 2em;
+.butterfly {
+    transition: all 0.5s ease;
 }
 
 .bird {
-    font-size: 1.5em;
-}
-
-.butterfly {
-    font-size: 1em;
-    opacity: 0.7;
+    transition: all 0.3s ease;
 }
 
 .worm {
-    font-size: 0.8em;
+    transition: transform 0.5s ease;
 }
 
 @media (max-width: 768px) {
@@ -109,13 +94,12 @@ body {
     #sidebar {
         width: 100%;
         min-width: auto;
-        height: 25%;
+        height: 30%;
         flex-direction: row;
     }
 
     #emoji-panel {
         width: 50%;
-        grid-template-columns: repeat(3, 1fr);
     }
 
     #event-menu {
@@ -127,6 +111,6 @@ body {
     }
 
     #play-area {
-        height: 75%;
+        height: 70%;
     }
 }
