@@ -1,100 +1,93 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const playArea = document.getElementById('play-area');
+// Butterfly.js
 
-    function createButterfly(x, y) {
-        const butterflyElement = document.createElement('div');
-        butterflyElement.textContent = EMOJIS.BUTTERFLY;
-        butterflyElement.classList.add('emoji', 'butterfly');
-        butterflyElement.style.position = 'absolute';
-        butterflyElement.style.left = getRandomEdgePosition('x') + 'px';
-        butterflyElement.style.top = getRandomEdgePosition('y') + 'px';
-        playArea.appendChild(butterflyElement);
+import { EMOJIS } from './constants.js';
 
-        butterflyElement.hunger = 100; // Initialize hunger bar
-        butterflyElement.state = 'flying'; // Initial state
-
-        console.log('Butterfly spawned at position', butterflyElement.style.left, butterflyElement.style.top);
-
-        butterflyFlightPattern(butterflyElement, x, y);
+export class Butterfly {
+    constructor(bush) {
+        this.homeBush = bush;
+        this.element = this.createButterflyElement();
+        this.x = parseFloat(bush.style.left) + Math.random() * 40 - 20;
+        this.y = parseFloat(bush.style.top) + Math.random() * 40 - 20;
+        this.hunger = 100;
+        this.speed = 0.5 + Math.random() * 0.5;
+        this.angle = Math.random() * Math.PI * 2;
+        this.wobble = 0;
     }
 
-    function butterflyFlightPattern(butterfly, targetX, targetY) {
-        console.log('Entering butterflyFlightPattern for butterfly at:', butterfly.style.left, butterfly.style.top);
-
-        butterfly.state = 'flying';
-        const flightTime = Math.random() * 5000 + 5000; // 5-10 seconds
-        let lastDebugTime = Date.now(); // Timestamp for throttling debug messages
-
-        const flightInterval = setInterval(() => {
-            if (butterfly.state === 'flying') {
-                if (Date.now() - lastDebugTime > 3000) { // Log every 3 seconds
-                    console.log('Butterfly is flying at:', butterfly.style.left, butterfly.style.top);
-                    lastDebugTime = Date.now();
-                }
-
-                const currentX = parseFloat(butterfly.style.left);
-                const currentY = parseFloat(butterfly.style.top);
-
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 20 + 10; // Random distance
-                const newX = currentX + distance * Math.cos(angle);
-                const newY = currentY + distance * Math.sin(angle);
-
-                butterfly.style.left = `${Math.max(0, Math.min(newX, playArea.clientWidth - 20))}px`;
-                butterfly.style.top = `${Math.max(0, Math.min(newY, playArea.clientHeight - 20))}px`;
-
-                if (butterfly.hunger <= 0) {
-                    clearInterval(flightInterval);
-                    console.log('Butterfly hunger below 0, removing butterfly.');
-                    butterfly.remove();
-                }
-            }
-        }, 500);
-
-        // Set timeout for changing state after flight time
-        setTimeout(() => {
-            if (butterfly.state === 'flying') {
-                clearInterval(flightInterval);
-                console.log('Butterfly completing flight time, resuming flight.');
-                butterflyFlightPattern(butterfly, targetX, targetY);
-            }
-        }, flightTime);
+    createButterflyElement() {
+        const element = document.createElement('div');
+        element.textContent = EMOJIS.BUTTERFLY;
+        element.classList.add('emoji', 'butterfly');
+        element.style.position = 'absolute';
+        return element;
     }
 
-    function addButterflies(x, y) {
-        const numButterflies = Math.floor(Math.random() * 2) + 1; // 1-2 butterflies per bush
-        const bushElement = document.createElement('div');
-        bushElement.classList.add('bush');
-        bushElement.dataset.cooldown = false; // Initial cooldown state
-
-        for (let i = 0; i < numButterflies; i++) {
-            createButterfly(x, y);
-        }
-
-        // Add bush to play area
-        bushElement.style.position = 'absolute';
-        bushElement.style.left = `${x}px`;
-        bushElement.style.top = `${y}px`;
-        playArea.appendChild(bushElement);
-
-        // Set up butterfly respawn cooldown
-        setInterval(() => {
-            if (bushElement.dataset.cooldown === "false") {
-                createButterfly(x, y);
-                bushElement.dataset.cooldown = true;
-                setTimeout(() => {
-                    bushElement.dataset.cooldown = false;
-                }, Math.random() * 30000 + 30000); // 30-60 seconds cooldown
-            }
-        }, 5000); // Check every 5 seconds
-    }
-
-    function getRandomEdgePosition(axis) {
-        const playArea = document.getElementById('play-area');
-        if (axis === 'x') {
-            return Math.random() > 0.5 ? 0 : playArea.clientWidth - 20; // Adjust 20 for margin
+    update(deltaTime) {
+        if (this.hunger < 30 && this.distanceToBush(this.homeBush) > 50) {
+            this.moveTowardsBush(deltaTime);
+        } else if (this.hunger < 30 && this.distanceToBush(this.homeBush) <= 50) {
+            this.land();
         } else {
-            return Math.random() > 0.5 ? 0 : playArea.clientHeight - 20;
+            this.fly(deltaTime);
+        }
+
+        this.updateHunger(deltaTime);
+        this.updateElementPosition();
+    }
+
+    fly(deltaTime) {
+        this.wobble += deltaTime * 10;
+        this.angle += (Math.sin(this.wobble) * 0.3 + Math.random() * 0.2 - 0.1) * deltaTime;
+        
+        const dx = Math.cos(this.angle) * this.speed;
+        const dy = Math.sin(this.angle) * this.speed;
+
+        this.x += dx;
+        this.y += dy;
+
+        // Keep butterfly near its home bush
+        const maxDistance = 100;
+        const bushX = parseFloat(this.homeBush.style.left);
+        const bushY = parseFloat(this.homeBush.style.top);
+        const distanceToBush = Math.sqrt((this.x - bushX)**2 + (this.y - bushY)**2);
+
+        if (distanceToBush > maxDistance) {
+            this.angle = Math.atan2(bushY - this.y, bushX - this.x);
         }
     }
-});
+
+    moveTowardsBush(deltaTime) {
+        const bushX = parseFloat(this.homeBush.style.left);
+        const bushY = parseFloat(this.homeBush.style.top);
+        const angle = Math.atan2(bushY - this.y, bushX - this.x);
+        
+        this.x += Math.cos(angle) * this.speed * 2;
+        this.y += Math.sin(angle) * this.speed * 2;
+    }
+
+    land() {
+        this.x = parseFloat(this.homeBush.style.left) + Math.random() * 20 - 10;
+        this.y = parseFloat(this.homeBush.style.top) + Math.random() * 20 - 10;
+        this.feed();
+    }
+
+    feed() {
+        this.hunger = Math.min(100, this.hunger + 20);
+        console.log(`Butterfly feeding. New hunger: ${this.hunger}`);
+    }
+
+    updateHunger(deltaTime) {
+        this.hunger = Math.max(0, this.hunger - 1 * deltaTime);
+    }
+
+    updateElementPosition() {
+        this.element.style.left = `${this.x}px`;
+        this.element.style.top = `${this.y}px`;
+    }
+
+    distanceToBush(bush) {
+        const bushX = parseFloat(bush.style.left);
+        const bushY = parseFloat(bush.style.top);
+        return Math.sqrt((this.x - bushX)**2 + (this.y - bushY)**2);
+    }
+}
