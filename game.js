@@ -1,58 +1,52 @@
 // game.js
 
-import { GameEngine } from './gameEngine.js';
 import { EcosystemManager } from './ecosystemManager.js';
-import { UI } from './ui.js';
-import { ProgressionSystem } from './progressionSystem.js';
 import { EMOJIS } from './constants.js';
 
 class Game {
     constructor() {
-        this.gameEngine = new GameEngine();
-        this.ecosystemManager = new EcosystemManager();
-        this.ui = new UI();
-        this.progressionSystem = new ProgressionSystem();
+        this.playArea = document.getElementById('play-area');
+        this.emojiPanel = document.getElementById('emoji-panel');
+        this.ecosystemManager = new EcosystemManager(this.playArea);
         this.lastTime = 0;
     }
 
     initialize() {
-        this.ui.initializeUI();
         this.setupEventListeners();
         this.gameLoop(0);
     }
 
     setupEventListeners() {
-        const playArea = document.getElementById('play-area');
-        playArea.addEventListener('dragover', (e) => e.preventDefault());
-        playArea.addEventListener('drop', this.handleDrop.bind(this));
-        // Add touch event listeners here
+        this.playArea.addEventListener('dragover', (e) => e.preventDefault());
+        this.playArea.addEventListener('drop', this.handleDrop.bind(this));
+        this.emojiPanel.addEventListener('dragstart', this.handleDragStart.bind(this));
+    }
+
+    handleDragStart(e) {
+        e.dataTransfer.setData('text/plain', e.target.textContent);
     }
 
     handleDrop(e) {
         e.preventDefault();
-        const x = e.clientX - this.ui.playArea.offsetLeft;
-        const y = e.clientY - this.ui.playArea.offsetTop;
+        const x = e.clientX - this.playArea.offsetLeft;
+        const y = e.clientY - this.playArea.offsetTop;
         const emoji = e.dataTransfer.getData('text/plain');
-        this.addEntityToPlayArea(emoji, x, y);
+        this.addEmojiToPlayArea(emoji, x, y);
     }
 
-    addEntityToPlayArea(emoji, x, y) {
+    addEmojiToPlayArea(emoji, x, y) {
         switch(emoji) {
             case EMOJIS.BUSH:
                 this.ecosystemManager.addBush(x, y);
                 break;
             case EMOJIS.TREE:
-                if (this.progressionSystem.canPlantTree()) {
-                    this.ecosystemManager.addTree(x, y);
-                    this.progressionSystem.treePlanted();
-                }
+                this.ecosystemManager.addTree(x, y);
                 break;
             case EMOJIS.WORM:
                 this.ecosystemManager.addWorm(x, y);
                 break;
         }
-        this.ui.addEventLogMessage(`A ${this.getEmojiName(emoji)} has been added to the ecosystem!`);
-        this.progressionSystem.checkUnlocks();
+        this.addEventLogMessage(`A ${this.getEmojiName(emoji)} has been added to the ecosystem!`);
     }
 
     getEmojiName(emoji) {
@@ -66,19 +60,38 @@ class Game {
         }
     }
 
+    addEventLogMessage(message) {
+        const eventMenu = document.getElementById('event-menu');
+        const eventMessageElement = document.createElement('div');
+        eventMessageElement.className = 'event-message';
+        eventMessageElement.textContent = message;
+        eventMenu.appendChild(eventMessageElement);
+        
+        while (eventMenu.children.length > 6) {
+            eventMenu.removeChild(eventMenu.children[1]);
+        }
+        
+        console.log(`BREAKING NEWS: ${message}`);
+    }
+
     gameLoop(currentTime) {
         requestAnimationFrame(this.gameLoop.bind(this));
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
         this.ecosystemManager.update(deltaTime);
-        this.ui.update();
-        
-        // Implement basic viewport culling
-        const visibleEntities = this.ecosystemManager.getVisibleEntities(this.ui.getViewport());
-        this.ui.renderEntities(visibleEntities);
     }
 }
 
 const game = new Game();
 game.initialize();
+
+// Expose necessary functions to the global scope
+window.addWormToPanel = () => {
+    const wormElement = document.createElement('div');
+    wormElement.textContent = EMOJIS.WORM;
+    wormElement.id = 'worm';
+    wormElement.classList.add('emoji');
+    wormElement.setAttribute('draggable', 'true');
+    document.getElementById('emoji-panel').appendChild(wormElement);
+};
