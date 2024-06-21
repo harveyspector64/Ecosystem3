@@ -84,6 +84,149 @@ window.birds = [];
         }
     }
 
+// Bird class
+class Bird {
+    constructor(element) {
+        this.element = element;
+        this.hunger = 100;
+        this.foodConsumed = 0;
+        this.state = 'flying';
+        this.flightAngle = Math.random() * Math.PI * 2;
+        this.flightSpeed = 1 + Math.random() * 0.5;
+        this.setPosition(getRandomEdgePosition());
+    }
+
+    setPosition(position) {
+        this.element.style.left = `${position.x}px`;
+        this.element.style.top = `${position.y}px`;
+    }
+
+    getPosition() {
+        return {
+            x: parseFloat(this.element.style.left),
+            y: parseFloat(this.element.style.top)
+        };
+    }
+
+    move() {
+        const currentPosition = this.getPosition();
+        let targetPosition;
+
+        if (this.hunger < 50) {
+            targetPosition = this.findNearestFood();
+        } else {
+            targetPosition = this.getRandomPositionInPlay();
+        }
+
+        this.flightAngle += (Math.random() - 0.5) * 0.3;
+
+        const newX = currentPosition.x + Math.cos(this.flightAngle) * this.flightSpeed;
+        const newY = currentPosition.y + Math.sin(this.flightAngle) * this.flightSpeed;
+
+        const distanceToTarget = getDistance({x: newX, y: newY}, targetPosition);
+        if (distanceToTarget > 50) {
+            const angleToTarget = Math.atan2(targetPosition.y - newY, targetPosition.x - newX);
+            this.flightAngle = this.flightAngle * 0.8 + angleToTarget * 0.2;
+        }
+
+        this.setPosition({x: newX, y: newY});
+
+        this.hunger -= 0.1;
+        if (this.hunger <= 0) {
+            // We'll implement death later
+            this.hunger = 100;  // For now, just reset hunger
+        }
+
+        this.checkForFood();
+    }
+
+    findNearestFood() {
+        const worms = document.querySelectorAll('.worm');
+        const butterflies = document.querySelectorAll('.butterfly');
+        let nearestFood = null;
+        let minDistance = Infinity;
+
+        [...worms, ...butterflies].forEach(food => {
+            const foodPosition = {
+                x: parseFloat(food.style.left),
+                y: parseFloat(food.style.top)
+            };
+            const distance = getDistance(this.getPosition(), foodPosition);
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestFood = food;
+            }
+        });
+
+        return nearestFood ? {
+            x: parseFloat(nearestFood.style.left),
+            y: parseFloat(nearestFood.style.top)
+        } : this.getRandomPositionInPlay();
+    }
+
+    checkForFood() {
+        const currentPosition = this.getPosition();
+        const worms = document.querySelectorAll('.worm');
+        const butterflies = document.querySelectorAll('.butterfly');
+
+        [...worms, ...butterflies].forEach(food => {
+            const foodPosition = {
+                x: parseFloat(food.style.left),
+                y: parseFloat(food.style.top)
+            };
+            if (getDistance(currentPosition, foodPosition) < 20) {
+                this.eat(food);
+            }
+        });
+    }
+
+    eat(food) {
+        const energyGain = food.classList.contains('worm') ? 20 : 5;
+        this.hunger = Math.min(this.hunger + energyGain, 100);
+        this.foodConsumed += energyGain;
+        food.remove();
+        addEventLogMessage('birdEat', {food: food.classList.contains('worm') ? 'a worm' : 'a butterfly', energy: this.hunger});
+
+        if (this.foodConsumed >= 100) {
+            this.layEgg();
+        }
+    }
+
+    layEgg() {
+        const nearestTree = this.findNearestTree();
+        if (nearestTree) {
+            createEgg(nearestTree);
+            this.foodConsumed = 0;
+        }
+    }
+
+    findNearestTree() {
+        const trees = document.querySelectorAll('.tree');
+        let nearestTree = null;
+        let minDistance = Infinity;
+
+        trees.forEach(tree => {
+            const treePosition = {
+                x: parseFloat(tree.style.left),
+                y: parseFloat(tree.style.top)
+            };
+            const distance = getDistance(this.getPosition(), treePosition);
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestTree = tree;
+            }
+        });
+
+        return nearestTree    }
+
+    getRandomPositionInPlay() {
+        return {
+            x: Math.random() * (window.cachedElements.playArea.clientWidth - 20),
+            y: Math.random() * (window.cachedElements.playArea.clientHeight - 20)
+        };
+    }
+}
+    
  // Butterfly class
     class Butterfly {
         constructor(element, homeBush) {
@@ -119,35 +262,40 @@ window.birds = [];
             };
         }
 
-        move() {
-            if (this.state === 'resting') {
-                if (Math.random() < 0.05) {
-                    this.state = 'flying';
-                } else {
-                    return;
-                }
-            }
-
-            const currentPosition = this.getPosition();
-            let targetPosition;
-
-            if (Math.random() < 0.7) {
-                targetPosition = this.getRandomPositionAroundBush(this.homeBush);
+    move() {
+        if (this.state === 'resting') {
+            if (Math.random() < 0.05) {
+                this.state = 'flying';
             } else {
-                targetPosition = this.getRandomPositionInPlay();
+                return;
             }
-
-            this.flightAngle += (Math.random() - 0.5) * 0.3;  // Reduced angle change
-
-            const newX = currentPosition.x + Math.cos(this.flightAngle) * this.flightSpeed;
-            const newY = currentPosition.y + Math.sin(this.flightAngle) * this.flightSpeed;
-
-            // Smooth transition to new position
-            this.element.style.transition = 'left 0.5s, top 0.5s';
-            this.setPosition({x: newX, y: newY});
-
-            this.checkForPollination();
         }
+
+        const currentPosition = this.getPosition();
+        let targetPosition;
+
+        if (Math.random() < 0.7) {
+            targetPosition = this.getRandomPositionAroundBush(this.homeBush);
+        } else {
+            targetPosition = this.getRandomPositionInPlay();
+        }
+
+        this.flightAngle += (Math.random() - 0.5) * 0.3;  // Reduced angle change
+
+        const newX = currentPosition.x + Math.cos(this.flightAngle) * this.flightSpeed;
+        const newY = currentPosition.y + Math.sin(this.flightAngle) * this.flightSpeed;
+
+        // Add some random movement
+        const flutterX = Math.sin(Date.now() / 200) * 2;
+        const flutterY = Math.cos(Date.now() / 180) * 2;
+
+        this.setPosition({
+            x: newX + flutterX,
+            y: newY + flutterY
+        });
+
+        this.checkForPollination();
+    }
 
         checkForPollination() {
             if (this.carriesPollen) {
