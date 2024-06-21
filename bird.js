@@ -1,15 +1,20 @@
 // Bird.js
 
-import { EMOJIS } from './constants.js';
+import { EMOJIS } from '../constants.js';
+import { addEventLogMessage } from '../eventLog.js';
+import { addPoints } from '../scoring.js';
 
 export class Bird {
     static birdCounter = 0;
 
-    constructor(x, y) {
-        this.element = this.createBirdElement(x, y);
+    constructor(x, y, isNewborn = false) {
+        this.id = `bird-${++Bird.birdCounter}`;
+        this.element = this.createBirdElement(x, y, isNewborn);
         this.currentState = Bird.birdStates.FLYING;
         this.hunger = 100;
         this.foodConsumed = 0;
+        this.isNewborn = isNewborn;
+        this.growthProgress = isNewborn ? 0 : 100;
         this.flightAngle = 0;
         this.flightRadius = 100;
         this.flightSpeed = 2;
@@ -28,18 +33,27 @@ export class Bird {
         ASCENDING: 'ascending'
     };
 
-    createBirdElement(x, y) {
+    createBirdElement(x, y, isNewborn) {
         const birdElement = document.createElement('div');
         birdElement.textContent = EMOJIS.BIRD;
         birdElement.classList.add('emoji', 'bird');
+        if (isNewborn) birdElement.classList.add('newborn');
         birdElement.style.position = 'absolute';
         birdElement.style.left = `${x}px`;
         birdElement.style.top = `${y}px`;
-        birdElement.id = `bird-${++Bird.birdCounter}`;
+        birdElement.id = this.id;
         return birdElement;
     }
 
+    setState(newState) {
+        console.log(`Bird ${this.id} state transition: ${this.currentState} -> ${newState}`);
+        this.currentState = newState;
+    }
+
     update(deltaTime, playArea) {
+        this.updateHunger(deltaTime);
+        this.updateGrowth(deltaTime);
+
         switch (this.currentState) {
             case Bird.birdStates.FLYING:
                 this.fly(deltaTime, playArea);
@@ -53,9 +67,12 @@ export class Bird {
             // Other states...
         }
 
-        this.updateHunger(deltaTime);
         this.element.style.left = `${this.x}px`;
         this.element.style.top = `${this.y}px`;
+        
+        if (this.foodConsumed >= 200) {
+            this.tryLayEgg();
+        }
     }
 
     fly(deltaTime, playArea) {
@@ -74,11 +91,8 @@ export class Bird {
         }
 
         // Ensure bird stays within play area
-        newX = Math.max(0, Math.min(newX, playArea.clientWidth - 20));
-        newY = Math.max(0, Math.min(newY, playArea.clientHeight - 20));
-
-        this.x = newX;
-        this.y = newY;
+        this.x = Math.max(0, Math.min(newX, playArea.clientWidth - 20));
+        this.y = Math.max(0, Math.min(newY, playArea.clientHeight - 20));
 
         // Occasionally check for landing
         if (Math.random() < 0.01) {
@@ -87,11 +101,24 @@ export class Bird {
     }
 
     walk(deltaTime, playArea) {
-        // Implement walking behavior...
+        const speed = 20 * deltaTime;
+        const angle = Math.random() * Math.PI * 2;
+        this.x += Math.cos(angle) * speed;
+        this.y += Math.sin(angle) * speed;
+
+        // Ensure bird stays within play area
+        this.x = Math.max(0, Math.min(this.x, playArea.clientWidth - 20));
+        this.y = Math.max(0, Math.min(this.y, playArea.clientHeight - 20));
+
+        if (Math.random() < 0.01) { // 1% chance to start flying each update
+            this.setState(Bird.birdStates.FLYING);
+        }
     }
 
     perch(deltaTime) {
-        // Implement perching behavior...
+        if (Math.random() < 0.005) { // 0.5% chance to start flying each update
+            this.setState(Bird.birdStates.FLYING);
+        }
     }
 
     checkForLanding(playArea) {
@@ -103,34 +130,88 @@ export class Bird {
     }
 
     flyToNearestTree(playArea) {
-        // Implement flying to nearest tree...
+        // Implementation of flying to nearest tree...
     }
 
     descendToGround(playArea) {
-        // Implement descending to ground...
+        // Implementation of descending to ground...
     }
 
     updateHunger(deltaTime) {
         this.hunger = Math.max(0, this.hunger - 2 * deltaTime);
     }
 
+    updateGrowth(deltaTime) {
+        if (this.isNewborn && this.growthProgress < 100) {
+            this.growthProgress += 10 * deltaTime; // Grow over time
+            if (this.growthProgress >= 100) {
+                this.isNewborn = false;
+                this.element.classList.remove('newborn');
+                addEventLogMessage(`Bird ${this.id} has grown to full size!`);
+            }
+        }
+    }
+
     eat(food) {
-        if (food instanceof Butterfly) {
-            this.hunger = Math.min(100, this.hunger + 5);
-            this.foodConsumed += 5;
-        } else if (food instanceof Worm) {
-            this.hunger = Math.min(100, this.hunger + 20);
-            this.foodConsumed += 20;
+        let nutritionalValue;
+        if (food.constructor.name === 'Butterfly') {
+            nutritionalValue = 5;
+        } else if (food.constructor.name === 'Worm') {
+            nutritionalValue = 20;
         }
-        console.log(`Bird ate ${food.constructor.name}. New hunger: ${this.hunger}`);
-        this.checkForNestCreation();
+
+        this.hunger = Math.min(100, this.hunger + nutritionalValue);
+        this.foodConsumed += nutritionalValue;
+        this.growthProgress = Math.min(100, this.growthProgress + nutritionalValue);
+
+        addPoints(nutritionalValue);
+        console.log(`Bird ${this.id} ate ${food.constructor.name}. New hunger: ${this.hunger}`);
+        addEventLogMessage(`Bird ${this.id} ate a ${food.constructor.name.toLowerCase()}!`);
     }
 
-    checkForNestCreation() {
-        if (this.foodConsumed >= 120) {
-            // Implement nest creation...
+    tryLayEgg() {
+        if (Math.random() < 0.1) { // 10% chance to lay an egg when conditions are met
+            this.layEgg();
+            this.foodConsumed = 0; // Reset food consumed after laying an egg
         }
     }
 
-    // Other methods...
+    layEgg() {
+        // Find a nearby tree to lay the egg in
+        const nearestTree = this.findNearestTree();
+        if (nearestTree) {
+            const egg = this.createEggElement(nearestTree);
+            nearestTree.appendChild(egg);
+            addEventLogMessage(`Bird ${this.id} laid an egg in a tree!`);
+            
+            // Set a timer for the egg to hatch
+            const hatchTime = 30000 + Math.random() * 30000; // 30-60 seconds
+            setTimeout(() => this.hatchEgg(egg, nearestTree), hatchTime);
+        }
+    }
+
+    createEggElement(tree) {
+        const egg = document.createElement('div');
+        egg.textContent = '🥚';
+        egg.classList.add('emoji', 'egg');
+        egg.style.position = 'absolute';
+        const offset = 20;
+        egg.style.left = `${Math.random() * offset - offset/2}px`;
+        egg.style.top = `${Math.random() * offset - offset/2}px`;
+        return egg;
+    }
+
+    hatchEgg(egg, tree) {
+        egg.remove();
+        const numNewBirds = Math.floor(Math.random() * 3) + 1; // 1-3 new birds
+        for (let i = 0; i < numNewBirds; i++) {
+            const newBird = new Bird(parseFloat(tree.style.left), parseFloat(tree.style.top), true);
+            // Add the new bird to the ecosystem (this will need to be handled by the EcosystemManager)
+        }
+        addEventLogMessage(`An egg has hatched! ${numNewBirds} new bird(s) born!`);
+    }
+
+    findNearestTree() {
+        // This method should be implemented in EcosystemManager and called from there
+    }
 }
