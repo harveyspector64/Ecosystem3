@@ -384,7 +384,7 @@ window.butterflies = [];
         addEventLogMessage("A new flower bush has grown from pollination!");
     }
 
-    function addEventLogMessage(message) {
+function addEventLogMessage(message) {
         const eventMenu = window.cachedElements.eventMenu;
         if (!eventMenu) {
             console.error('Event menu not found');
@@ -394,3 +394,82 @@ window.butterflies = [];
         const eventMessageElement = document.createElement('div');
         eventMessageElement.className = 'event-message';
         eventMessageElement.textContent = message;
+        
+        eventMenu.appendChild(eventMessageElement);
+        
+        // Keep only the last 5 messages
+        while (eventMenu.children.length > 6) { // +1 for the header
+            eventMenu.removeChild(eventMenu.children[1]); // Remove the oldest message, not the header
+        }
+        
+        console.log(`BREAKING NEWS: ${message}`);
+    }
+
+    // Update functions
+    function updateButterflies() {
+        window.butterflies.forEach(butterfly => butterfly.move());
+    }
+
+    function updateBirds() {
+        // Implement bird movement and behavior here
+    }
+
+    function updateWorms() {
+        // Implement worm wiggling here
+    }
+
+    // Main game loop
+    function gameLoop(currentTime) {
+        requestAnimationFrame(gameLoop);
+        
+        updateButterflies();
+        updateBirds();
+        updateWorms();
+        
+        performanceMonitor.update(currentTime);
+    }
+
+    // Initialization
+    function initializeGame() {
+        window.cachedElements.playArea = document.getElementById('play-area');
+        window.cachedElements.emojiPanel = document.getElementById('emoji-panel');
+        window.cachedElements.eventMenu = document.getElementById('event-menu');
+        window.cachedElements.tree = document.getElementById('tree');
+
+        initializeEmojis();
+        setupEventListeners();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function initializeEmojis() {
+        INITIAL_EMOJIS.forEach(item => {
+            const element = document.getElementById(item.id);
+            if (item.disabled) {
+                element.classList.add('disabled');
+                element.setAttribute('draggable', 'false');
+            } else {
+                element.setAttribute('draggable', 'true');
+            }
+        });
+    }
+
+    function setupEventListeners() {
+        window.cachedElements.emojiPanel.addEventListener('dragstart', handleDragStart);
+        window.cachedElements.playArea.addEventListener('dragover', (e) => e.preventDefault());
+        window.cachedElements.playArea.addEventListener('drop', handleDrop);
+        window.cachedElements.emojiPanel.addEventListener('touchstart', handleTouchStart);
+        document.addEventListener('touchmove', handleTouchMove);
+        document.addEventListener('touchend', handleTouchEnd);
+    }
+
+    // Expose necessary functions to the global scope
+    window.addWormToPanel = addWormToPanelWhenFirstBirdLands;
+    window.addBird = addBird;
+    window.startWormWiggle = startWormWiggle;
+    window.addEventLogMessage = addEventLogMessage;
+
+    // Initialize the game when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', initializeGame);
+})();
+
+        
