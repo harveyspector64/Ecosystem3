@@ -6,11 +6,13 @@ body {
     display: flex;
     overflow: hidden;
 }
+
 #container {
     display: flex;
     width: 100%;
     height: 100%;
 }
+
 #sidebar {
     width: 15%;
     min-width: 150px;
@@ -21,35 +23,42 @@ body {
     justify-content: space-between;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
+
 #emoji-panel {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 5px; /* Reduced gap */
+    gap: 10px;
     justify-content: center;
 }
+
 .emoji {
     font-size: 1.5em;
     cursor: pointer;
     transition: transform 0.2s;
     text-align: center;
 }
+
 .emoji:hover {
     transform: scale(1.1);
 }
+
 .emoji.disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
 #event-menu {
     margin-top: 20px;
     border-top: 1px solid #ccc;
     padding-top: 10px;
 }
+
 #event-menu h5 {
     margin: 0 0 10px 0;
     text-align: center;
     color: #333;
 }
+
 .event-message {
     background-color: #fff;
     border: 1px solid #ddd;
@@ -58,46 +67,57 @@ body {
     border-radius: 3px;
     font-size: 0.9em;
 }
+
 #play-area {
     flex-grow: 1;
     background-color: #e6f7ff;
     position: relative;
     overflow: hidden;
 }
+
 .play-area-emoji {
     position: absolute;
     transition: all 0.3s ease;
 }
+
 .tree {
-    font-size: 4em; /* Increased size */
+    font-size: 3em;
 }
+
 .flowering-bush {
-    font-size: 1.8em; /* Slightly reduced */
+    font-size: 2em;
 }
+
 .bird {
     font-size: 1.5em;
 }
+
 .butterfly {
-    font-size: 0.9em; /* Slightly reduced */
-    opacity: 0.6; /* More transparent */
+    font-size: 1em;
+    opacity: 0.7;
 }
+
 .worm {
     font-size: 0.8em;
 }
+
 @media (max-width: 768px) {
     #container {
         flex-direction: column;
     }
+
     #sidebar {
         width: 100%;
         min-width: auto;
         height: 25%;
         flex-direction: row;
     }
+
     #emoji-panel {
         width: 50%;
         grid-template-columns: repeat(3, 1fr);
     }
+
     #event-menu {
         width: 50%;
         margin-top: 0;
@@ -105,6 +125,7 @@ body {
         border-left: 1px solid #ccc;
         padding-left: 10px;
     }
+
     #play-area {
         height: 75%;
     }
