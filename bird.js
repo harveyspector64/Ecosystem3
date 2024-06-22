@@ -12,7 +12,7 @@ function setState(bird, newState) {
     bird.currentState = newState;
 }
 
-export function addBird(x, y) {
+function addBird(x, y) {
     const delay = getRandomTime(4000, 12000);
     console.log(`Spawning bird after delay: ${delay}`);
     
