@@ -2,12 +2,12 @@
 
 import { getRandomTime, getNearestTree, getDistance } from './utils.js';
 import { EMOJIS, birdStates } from './constants.js';
-import { gameState, setFirstBirdLanded } from './gameState.js';
+import { setFirstBirdLanded } from './gameState.js';
 import { addEventLogMessage } from './eventLogger.js';
 
 let birdCounter = 0;
 
-export function setState(bird, newState) {
+function setState(bird, newState) {
     console.log(`Bird state transition: ${bird.currentState} -> ${newState}`);
     bird.currentState = newState;
 }
