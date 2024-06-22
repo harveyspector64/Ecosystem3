@@ -110,13 +110,13 @@ import { startWormWiggle } from './worm.js';
 
     // Update functions
     function updateBirds() {
-        // Implement bird movement and behavior here
         // This function should be implemented in bird.js and imported if needed
+        // For now, we'll leave it empty
     }
 
     function updateWorms() {
-        // Implement worm wiggling here
         // This function should be implemented in worm.js and imported if needed
+        // For now, we'll leave it empty
     }
 
     // Main game loop
@@ -145,11 +145,15 @@ import { startWormWiggle } from './worm.js';
     function initializeEmojis() {
         INITIAL_EMOJIS.forEach(item => {
             const element = document.getElementById(item.id);
-            if (item.disabled) {
-                element.classList.add('disabled');
-                element.setAttribute('draggable', 'false');
+            if (element) {
+                if (item.disabled) {
+                    element.classList.add('disabled');
+                    element.setAttribute('draggable', 'false');
+                } else {
+                    element.setAttribute('draggable', 'true');
+                }
             } else {
-                element.setAttribute('draggable', 'true');
+                console.error(`Element with id ${item.id} not found`);
             }
         });
     }
