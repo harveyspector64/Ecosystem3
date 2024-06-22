@@ -1,5 +1,3 @@
-// gameState.js
-
 export const gameState = {
     selectedEmoji: null,
     draggedElement: null,
@@ -39,3 +37,6 @@ export function removeButterfly(butterfly) {
         gameState.butterflies.splice(index, 1);
     }
 }
+
+// Expose gameState to the window object for global access
+window.gameState = gameState;
