@@ -354,4 +354,106 @@ function detectWorms(bird, playArea) {
 
         worms.forEach(worm => {
             const wormRect = worm.getBoundingClientRect();
-            const birdRect =
+            const birdRect = bird.getBoundingClientRect();
+            const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
+            if (distance < minDistance && distance < 300) {
+                minDistance = distance;
+                nearestWorm = worm;
+            }
+        });
+
+        if (nearestWorm) {
+            birdMoveToWorm(bird, nearestWorm, playArea);
+        } else if (bird.hunger <= 60) {
+            birdAscendAndFlight(bird, playArea);
+        }
+    }
+}
+
+function detectButterflies(bird, playArea) {
+    if (bird.currentState === birdStates.FLYING) {
+        const butterflies = document.querySelectorAll('.butterfly');
+        butterflies.forEach(butterfly => {
+            const butterflyRect = butterfly.getBoundingClientRect();
+            const birdRect = bird.getBoundingClientRect();
+
+            if (birdRect.left < butterflyRect.right &&
+                birdRect.right > butterflyRect.left &&
+                birdRect.top < butterflyRect.bottom &&
+                birdRect.bottom > butterflyRect.top) {
+                    butterfly.remove();
+                    bird.hunger = Math.min(bird.hunger + 5, 100);
+                    bird.foodConsumed = (bird.foodConsumed || 0) + 5; // Track food consumption
+                    console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
+                    addEventLogMessage(`Bird ${bird.id} ate a butterfly. Food consumed: ${bird.foodConsumed}`);
+
+                    checkForNestCreation(bird); // Check for nest creation after eating
+            }
+        });
+    }
+}
+
+function birdAscendAndFlight(bird, playArea) {
+    console.log('Bird ascending to flight.');
+
+    setState(bird, birdStates.ASCENDING);
+
+    bird.style.transition = 'top 1s, left 1s';
+    bird.style.top = `${parseFloat(bird.style.top) - 50}px`; 
+    setTimeout(() => {
+        setState(bird, birdStates.FLYING); 
+
+        birdFlightPattern(bird, playArea, bird.hunger <= 60); 
+    }, 1000); // Ensure this matches the transition duration
+}
+
+function checkForNestCreation(bird) {
+    if (bird.foodConsumed >= 120) { // Adjusted threshold for nest creation
+        const tree = getNearestTree(bird);
+        if (tree) {
+            createNestInTree(tree);
+            bird.foodConsumed = 0; // Reset food count after creating nest
+        }
+    }
+}
+
+function createNestInTree(tree) {
+    console.log('Creating nest in tree.');
+
+    const nestElement = document.createElement('div');
+    nestElement.textContent = '🥚'; // Nest with eggs emoji
+    nestElement.classList.add('emoji', 'nest');
+    nestElement.style.position = 'absolute';
+    nestElement.style.left = tree.style.left;
+    nestElement.style.top = `${parseFloat(tree.style.top) - 30}px`; // Place nest slightly above the tree
+    tree.appendChild(nestElement);
+
+    addEventLogMessage('A nest has been created in a tree.');
+
+    // Set timer for nest to hatch
+    const hatchTime = getRandomTime(120000, 180000); // 2-3 minutes
+    setTimeout(() => hatchNest(nestElement), hatchTime);
+}
+
+function hatchNest(nestElement) {
+    console.log('Hatching nest.');
+
+    nestElement.remove();
+
+    addEventLogMessage('A nest has hatched! New birds have appeared.');
+
+    const numberOfBirds = Math.floor(Math.random() * 2) + 2; // 2-3 new birds
+    for (let i = 0; i < numberOfBirds; i++) {
+        const x = Math.random() * window.cachedElements.playArea.clientWidth;
+        const y = Math.random() * window.cachedElements.playArea.clientHeight;
+        addBird(x, y);
+    }
+}
+
+export function updateBirds() {
+    // This function can be used to update all birds in the game loop
+    // For now, it's empty as the birds update themselves through their own intervals
+}
+
+// Export only the necessary functions
+export { addBird, birdLandingDecision, birdDescendToGround, birdAscendAndFlight, detectButterflies };
