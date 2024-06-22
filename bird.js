@@ -1,32 +1,19 @@
+// bird.js
+
+import { getRandomTime, getNearestTree, getDistance } from './utils.js';
+import { EMOJIS, birdStates } from './constants.js';
+import { gameState, setFirstBirdLanded } from './gameState.js';
+import { addEventLogMessage } from './eventLogger.js';
+
 let birdCounter = 0;
-const eventLog = [];
 
-const birdStates = {
-    PERCHING: 'perching',
-    FLYING: 'flying',
-    WALKING: 'walking',
-    MOVING_TO_WORM: 'movingToWorm',
-    EATING: 'eating',
-    DESCENDING: 'descending',
-    LANDING: 'landing',
-    ASCENDING: 'ascending'
-};
-
-function setState(bird, newState) {
+export function setState(bird, newState) {
     console.log(`Bird state transition: ${bird.currentState} -> ${newState}`);
     bird.currentState = newState;
 }
 
-function logEvent(message) {
-    if (typeof window.addEventLogMessage === 'function') {
-        window.addEventLogMessage(message);
-    } else {
-        console.log(`Event: ${message}`);
-    }
-}
-
-function addBird(x, y) {
-    const delay = Math.random() * 8000 + 4000; // 4-12 seconds delay
+export function addBird(x, y) {
+    const delay = getRandomTime(4000, 12000);
     console.log(`Spawning bird after delay: ${delay}`);
     
     setTimeout(() => {
@@ -50,7 +37,7 @@ function addBird(x, y) {
         setState(birdElement, birdStates.FLYING);
         console.log(`Bird spawned with hunger: ${birdElement.hunger} at position ${birdElement.style.left} ${birdElement.style.top}`);
         
-        logEvent(`Bird ${birdElement.id} has spawned.`);
+        addEventLogMessage(`Bird ${birdElement.id} has spawned.`);
 
         birdFlightPattern(birdElement, window.cachedElements.playArea, false);
     }, delay);
@@ -59,7 +46,7 @@ function addBird(x, y) {
 function birdFlightPattern(bird, playArea, isErratic) {
     setState(bird, birdStates.FLYING);
 
-    const flightTime = Math.random() * 10000 + 5000; // 5-15 seconds
+    const flightTime = getRandomTime(5000, 15000);
     let lastDebugTime = Date.now();
 
     const flightInterval = setInterval(() => {
@@ -77,7 +64,7 @@ function birdFlightPattern(bird, playArea, isErratic) {
         const currentY = parseFloat(bird.style.top);
 
         const angle = Math.random() * Math.PI * 2;
-        const distance = isErratic ? (Math.random() * 40 + 60) : (Math.random() * 20 + 30);
+        const distance = isErratic ? getRandomTime(60, 100) : getRandomTime(30, 50);
         const newX = currentX + distance * Math.cos(angle);
         const newY = currentY + distance * Math.sin(angle);
 
@@ -124,8 +111,8 @@ function birdLandNearWorm(bird, worm, playArea) {
         bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird, playArea);
 
-        if (!window.firstBirdLanded) {
-            window.firstBirdLanded = true;
+        if (!gameState.firstBirdLanded) {
+            setFirstBirdLanded();
             window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
@@ -194,8 +181,8 @@ function birdDescendToGround(bird, playArea) {
         bird.walkCount = 0; // Reset walk count
         birdWalkingPattern(bird, playArea);
 
-        if (!window.firstBirdLanded) {
-            window.firstBirdLanded = true;
+        if (!gameState.firstBirdLanded) {
+            setFirstBirdLanded();
             window.addWormToPanel();
         }
     }, 1000); // Longer delay to simulate smooth landing
@@ -212,7 +199,7 @@ function birdLandOnTree(bird, treeX, treeY, playArea) {
 
         console.log(`Bird landed on tree at ${bird.style.left} ${bird.style.top}`);
 
-        const roostTime = Math.random() * 20000 + 10000; // 10-30 seconds
+        const roostTime = getRandomTime(10000, 30000);
         setTimeout(() => {
             console.log('Bird has roosted. Resuming flight.');
             birdAscendAndFlight(bird, playArea);
@@ -260,7 +247,7 @@ function birdWalkingPattern(bird, playArea) {
                 } else {
                     clearInterval(stepInterval);
                     if (bird.currentState === birdStates.WALKING) {
-                        const pauseDuration = Math.random() * 5000 + 2000;
+                        const pauseDuration = getRandomTime(2000, 7000);
                         bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
                         console.log(`Bird pausing for ${pauseDuration}ms`);
                         setTimeout(() => {
@@ -327,7 +314,7 @@ function birdMoveToWorm(bird, worm, playArea) {
             eatWorm(bird, worm);
         } else if (moveTime % 3000 === 0) { // Pause every 3 seconds
             clearInterval(moveInterval);
-            const pauseDuration = Math.random() * 1000 + 500; // 0.5 to 1.5 seconds pause
+            const pauseDuration = getRandomTime(500, 1500);
             bird.style.transform = Math.random() > 0.5 ? 'scaleX(-1)' : 'scaleX(1)';
             console.log(`Bird pausing while moving to worm for ${pauseDuration}ms`);
             setTimeout(() => {
@@ -346,7 +333,7 @@ function eatWorm(bird, worm) {
         bird.hunger = Math.min(bird.hunger + 20, 100);
         bird.foodConsumed = (bird.foodConsumed || 0) + 20; // Track food consumption
 
-        logEvent(`Bird ${bird.id} ate a worm. Food consumed: ${bird.foodConsumed}`);
+        addEventLogMessage(`Bird ${bird.id} ate a worm. Food consumed: ${bird.foodConsumed}`);
 
         if (bird.hunger >= 60) {
             birdAscendAndFlight(bird, window.cachedElements.playArea);
@@ -368,7 +355,10 @@ function detectWorms(bird, playArea) {
         worms.forEach(worm => {
             const wormRect = worm.getBoundingClientRect();
             const birdRect = bird.getBoundingClientRect();
-            const distance = Math.sqrt((birdRect.left - wormRect.left) ** 2 + (birdRect.top - wormRect.top) ** 2);
+            const distance = getDistance(
+                {x: birdRect.left, y: birdRect.top},
+                {x: wormRect.left, y: wormRect.top}
+            );
             if (distance < minDistance && distance < 300) {
                 minDistance = distance;
                 nearestWorm = worm;
@@ -398,7 +388,7 @@ function detectButterflies(bird, playArea) {
                     bird.hunger = Math.min(bird.hunger + 5, 100);
                     bird.foodConsumed = (bird.foodConsumed || 0) + 5; // Track food consumption
                     console.log(`Bird ate a butterfly. Hunger: ${bird.hunger}`);
-                    logEvent(`Bird ${bird.id} ate a butterfly. Food consumed: ${bird.foodConsumed}`);
+                    addEventLogMessage(`Bird ${bird.id} ate a butterfly. Food consumed: ${bird.foodConsumed}`);
 
                     checkForNestCreation(bird); // Check for nest creation after eating
             }
@@ -418,25 +408,6 @@ function birdAscendAndFlight(bird, playArea) {
 
         birdFlightPattern(bird, playArea, bird.hunger <= 60); 
     }, 1000); // Ensure this matches the transition duration
-}
-
-function getNearestTree(bird) {
-    const trees = document.querySelectorAll('.tree');
-    let nearestTree = null;
-    let minDistance = Infinity;
-
-    trees.forEach(tree => {
-        const treeX = parseFloat(tree.style.left);
-        const treeY = parseFloat(tree.style.top);
-        const distance = Math.sqrt((treeX - parseFloat(bird.style.left)) ** 2 + (treeY - parseFloat(bird.style.top)) ** 2);
-
-        if (distance < minDistance) {
-            minDistance = distance;
-            nearestTree = tree;
-        }
-    });
-
-    return nearestTree;
 }
 
 function checkForNestCreation(bird) {
@@ -460,10 +431,10 @@ function createNestInTree(tree) {
     nestElement.style.top = `${parseFloat(tree.style.top) - 30}px`; // Place nest slightly above the tree
     tree.appendChild(nestElement);
 
-    logEvent('A nest has been created in a tree.');
+    addEventLogMessage('A nest has been created in a tree.');
 
     // Set timer for nest to hatch
-    const hatchTime = Math.random() * 60000 + 120000; // 2-3 minutes
+    const hatchTime = getRandomTime(120000, 180000); // 2-3 minutes
     setTimeout(() => hatchNest(nestElement), hatchTime);
 }
 
@@ -472,7 +443,7 @@ function hatchNest(nestElement) {
 
     nestElement.remove();
 
-    logEvent('A nest has hatched! New birds have appeared.');
+    addEventLogMessage('A nest has hatched! New birds have appeared.');
 
     const numberOfBirds = Math.floor(Math.random() * 2) + 2; // 2-3 new birds
     for (let i = 0; i < numberOfBirds; i++) {
@@ -483,4 +454,10 @@ function hatchNest(nestElement) {
 }
 
 // Expose necessary functions to the global scope
-window.addBird = addBird;
+export { 
+    addBird,
+    birdLandingDecision,
+    birdDescendToGround,
+    birdAscendAndFlight,
+    detectButterflies
+};
